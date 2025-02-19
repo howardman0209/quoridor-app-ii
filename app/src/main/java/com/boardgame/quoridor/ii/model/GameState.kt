@@ -1,15 +1,14 @@
 package com.boardgame.quoridor.ii.model
 
+import com.boardgame.quoridor.ii.A_TO_Z
 import com.boardgame.quoridor.ii.extension.getDelta
 import com.boardgame.quoridor.ii.extension.getFlipped
 import com.boardgame.quoridor.ii.extension.getNearBy
-import com.google.gson.Gson
+import com.boardgame.quoridor.ii.extension.toNotation
 import java.util.BitSet
 import kotlin.math.min
 
-data class GameState(
-    val size: Int
-) : GameStateProperty<GameState> {
+class GameState(val size: Int) : GameStateProperty<GameState> {
     var numberOfTurn: Int = 1
         private set
 
@@ -22,13 +21,13 @@ data class GameState(
 
     private val players = listOf(
         Player( // P1
-            goalY = 0,
-            pawnLocation = Location(size / 2, size - 1),
+            goalY = size - 1,
+            pawnLocation = Location(size / 2, 0),
             remainingWalls = 10
         ),
         Player( // P2
-            goalY = size - 1,
-            pawnLocation = Location(size / 2, 0),
+            goalY = 0,
+            pawnLocation = Location(size / 2, size - 1),
             remainingWalls = 10
         )
     )
@@ -43,7 +42,7 @@ data class GameState(
     }
 
     private fun getWallIndex(location: Location): Int {
-        return (location.x * (size - 1) + location.y) * 3
+        return (location.x + location.y * (size - 1)) * 3
     }
 
     private fun placeWall(location: Location, orientation: Orientation, forPlayer: Boolean = true) {
@@ -377,23 +376,134 @@ data class GameState(
         return actionList
     }
 
+    private fun getAllWallPlacement(): List<GameAction.WallPlacement> {
+        val wallIndices = (0 until (size - 1) * (size - 1))
+            .filter { placedWalls[it * 3] }
+            .toIntArray()
+
+        return wallIndices.map {
+            GameAction.WallPlacement(
+                orientation = if (placedWalls.get(it + 1)) Orientation.VERTICAL else Orientation.HORIZONTAL,
+                location = Location(it % (size - 1), it / (size - 1))
+            )
+        }
+    }
+
     override fun getShortestPathToGoal(forPlayer: Boolean): List<Location>? {
         TODO("Not yet implemented")
     }
 
     override fun isTerminated(): Boolean {
-        return players.any { it.pawnLocation.y == it.goalY }
+        return players.any { it.hasReachedGoal() }
     }
 
     override fun clone(): GameState {
-        val jsonStr = Gson().toJson(this)
-        return Gson().fromJson(jsonStr, GameState::class.java)
+        val newGameState = GameState(size)
+        newGameState.numberOfTurn = this@GameState.numberOfTurn
+        newGameState.placedWalls.and(this@GameState.placedWalls)
+        newGameState.players.forEachIndexed { idx, player ->
+            player.pawnLocation = this@GameState.players[idx].pawnLocation
+            player.remainingWalls = this@GameState.players[idx].remainingWalls
+        }
+
+        return newGameState
     }
 
     override val printable: String
         get() {
-            return ""
+            val printableGame = StringBuilder()
+            printableGame.append("\n")
+            printableGame.append("Turn: #$numberOfTurn \n")
+
+            val size = size
+            val allWallPlacementNotions = getAllWallPlacement().map { "${it.location.toNotation()}${it.orientation.notation}" }
+            val charList = A_TO_Z.substring(0, size).map { it }
+            printableGame.append(" ".repeat(2))// padding
+            val horizontalLabel = charList.joinToString(" ") { " $it " }
+            printableGame.append(horizontalLabel)
+            printableGame.append("\n")
+            printableGame.append(" ".repeat(2))// padding
+            printableGame.append("-".repeat(horizontalLabel.length))
+            printableGame.append("\n")
+            for (i in size downTo 1) {
+                printableGame.append("$i|")
+                // grid line
+                for (c in charList) {
+                    val cell = if (players.first().pawnLocation.toNotation() == "${c}${i}") {
+                        "@"
+                    } else if (players.last().pawnLocation.toNotation() == "${c}${i}") {
+                        "o"
+                    } else {
+                        " "
+                    }
+                    printableGame.append(" $cell ")
+                    if (c < charList.last()) {
+                        val vWall = if ("${c}${i - 1}v" in allWallPlacementNotions || "${c}${i}v" in allWallPlacementNotions) {
+                            "|"
+                        } else {
+                            " "
+                        }
+                        printableGame.append(vWall)
+                    }
+                }
+                printableGame.append("|")
+                // border line
+                printableGame.append("\n")
+                if (i > 1) {
+                    printableGame.append(" |")
+                    for (c in charList) {
+                        val hWall = if ("${c}${i - 1}h" in allWallPlacementNotions || "${c - 1}${i - 1}h" in allWallPlacementNotions) {
+                            "-"
+                        } else {
+                            " "
+                        }
+                        printableGame.append(hWall.repeat(3))
+
+                        if (c < charList.last()) {
+                            printableGame.append("+")
+                        }
+                    }
+                    printableGame.append("|")
+                    printableGame.append("\n")
+                }
+            }
+            printableGame.append(" ".repeat(2))// padding
+            printableGame.append("-".repeat(horizontalLabel.length))
+            printableGame.append("\n")
+
+            players.forEachIndexed { idx, player ->
+                printableGame.append("P${idx + 1}: ${player.remainingWalls} wall(s) ")
+            }
+
+            return printableGame.toString()
         }
 
+    override fun toString(): String {
+        return printable
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GameState
+
+        if (size != other.size) return false
+        if (numberOfTurn != other.numberOfTurn) return false
+        if (placedWalls != other.placedWalls) return false
+        if (players != other.players) return false
+        if (printable != other.printable) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = size
+        result = 31 * result + numberOfTurn
+        result = 31 * result + placedWalls.hashCode()
+        result = 31 * result + players.hashCode()
+        result = 31 * result + printable.hashCode()
+        return result
+    }
 }
 
