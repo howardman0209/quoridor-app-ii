@@ -1,5 +1,6 @@
 package com.boardgame.quoridor.ii.model
 
+import android.util.Log
 import com.boardgame.quoridor.ii.A_TO_Z
 import com.boardgame.quoridor.ii.extension.getDelta
 import com.boardgame.quoridor.ii.extension.getFlipped
@@ -137,7 +138,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 }
 
                 // overlapping
-                val isHorizontalWall = !placedWalls.get(wallIndex + 1)
+                val isHorizontalWall = !placedWalls.get(nearByWallIndex + 1)
                 if (isHorizontalWall) {
                     return false
                 }
@@ -383,7 +384,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
 
         return wallIndices.map {
             GameAction.WallPlacement(
-                orientation = if (placedWalls.get(it + 1)) Orientation.VERTICAL else Orientation.HORIZONTAL,
+                orientation = if (placedWalls.get(it * 3 + 1)) Orientation.VERTICAL else Orientation.HORIZONTAL,
                 location = Location(it % (size - 1), it / (size - 1))
             )
         }

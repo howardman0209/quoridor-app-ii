@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.GameState
 import com.boardgame.quoridor.ii.model.Location
+import com.boardgame.quoridor.ii.model.Orientation
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,8 +15,12 @@ class MainActivity : AppCompatActivity() {
         val gameState = GameState(size = 9)
         val newGameState = gameState.clone()
         gameState.takeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
-        Log.d("MainApplication", "gameState: $gameState")
-        Log.d("MainApplication", "gameState: ${gameState.hashCode()}, ${newGameState.hashCode()}")
-        Log.d("MainApplication", "gameState = newGameState: ${gameState == newGameState}")
+        gameState.takeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 1)))
+        gameState.takeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(1, 1)))
+        Log.d("MainActivity", "gameState: $gameState")
+        Log.d("MainActivity", "gameState: ${gameState.hashCode()}, ${newGameState.hashCode()}")
+        Log.d("MainActivity", "gameState = newGameState: ${gameState == newGameState}")
+        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
+        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
     }
 }
