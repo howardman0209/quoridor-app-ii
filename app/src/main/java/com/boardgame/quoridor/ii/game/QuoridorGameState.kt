@@ -1,4 +1,4 @@
-package com.boardgame.quoridor.ii.model
+package com.boardgame.quoridor.ii.game
 
 import android.util.Log
 import com.boardgame.quoridor.ii.A_TO_Z
@@ -6,13 +6,18 @@ import com.boardgame.quoridor.ii.extension.getDelta
 import com.boardgame.quoridor.ii.extension.getFlipped
 import com.boardgame.quoridor.ii.extension.getNearBy
 import com.boardgame.quoridor.ii.extension.toNotation
+import com.boardgame.quoridor.ii.model.Direction
+import com.boardgame.quoridor.ii.model.GameAction
+import com.boardgame.quoridor.ii.model.Location
+import com.boardgame.quoridor.ii.model.Orientation
+import com.boardgame.quoridor.ii.model.Player
 import java.util.BitSet
 import java.util.LinkedList
 import java.util.Queue
 import kotlin.collections.plus
 import kotlin.math.min
 
-class GameState(val size: Int) : GameStateProperty<GameState> {
+class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
     var numberOfTurn: Int = 1
         private set
 
@@ -77,7 +82,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         actionMaker.remainingWalls++
     }
 
-    override fun takeGameAction(action: GameAction) {
+    override fun executeGameAction(action: GameAction) {
         when (action) {
             is GameAction.PawnMovement -> movePawn(action.newLocation)
             is GameAction.WallPlacement -> placeWall(action.location, action.orientation)
@@ -114,7 +119,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
     override fun isLegalWallPlacement(action: GameAction.WallPlacement): Boolean {
         val pointOfCheck = action.location
         if (!isLegalWallLocation(pointOfCheck)) {
-            Log.e("isLegalWallPlacement", "illegal wall location")
+//            Log.e("isLegalWallPlacement", "illegal wall location")
             return false
         }
 
@@ -122,7 +127,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         val wallIndex = getWallIndex(action.location)
         val isWallPlaced = placedWalls.get(wallIndex)
         if (isWallPlaced) {
-            Log.e("isLegalWallPlacement", "wall crossing")
+//            Log.e("isLegalWallPlacement", "wall crossing")
             return false
         }
 
@@ -146,7 +151,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 // overlapping
                 val isHorizontalWall = !placedWalls.get(nearByWallIndex + 1)
                 if (isHorizontalWall) {
-                    Log.e("isLegalWallPlacement", "wall overlapping")
+//                    Log.e("isLegalWallPlacement", "wall overlapping")
                     return false
                 }
             }
@@ -169,7 +174,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 // overlapping
                 val isVerticalWall = placedWalls.get(wallIndex + 1)
                 if (isVerticalWall) {
-                    Log.e("isLegalWallPlacement", "wall overlapping")
+//                    Log.e("isLegalWallPlacement", "wall overlapping")
                     return false
                 }
             }
@@ -177,15 +182,15 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
 
         // check dead block
         if (isConnectingWall(action.location, action.orientation)) {
-            val temporaryGameState = this.clone()
-            temporaryGameState.takeGameAction(action)
+            val temporaryGameState = this.deepCopy()
+            temporaryGameState.executeGameAction(action)
             if (temporaryGameState.getShortestPathToGoal(true).isNullOrEmpty()) {
-                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.player().getPlayerIndex() + 1}")
+//                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.player().getPlayerIndex() + 1}")
                 return false
             }
 
             if (temporaryGameState.getShortestPathToGoal(false).isNullOrEmpty()) {
-                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.opponent().getPlayerIndex() + 1}")
+//                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.opponent().getPlayerIndex() + 1}")
                 return false
             }
         }
@@ -441,19 +446,19 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         return players.any { it.hasReachedGoal() }
     }
 
-    override fun clone(): GameState {
-        val newGameState = GameState(size)
-        newGameState.numberOfTurn = this@GameState.numberOfTurn
-        newGameState.placedWalls.or(this@GameState.placedWalls)
+    override fun deepCopy(): QuoridorGameState {
+        val newGameState = QuoridorGameState(size)
+        newGameState.numberOfTurn = this@QuoridorGameState.numberOfTurn
+        newGameState.placedWalls.or(this@QuoridorGameState.placedWalls)
         newGameState.players.forEachIndexed { idx, player ->
-            player.pawnLocation = this@GameState.players[idx].pawnLocation
-            player.remainingWalls = this@GameState.players[idx].remainingWalls
+            player.pawnLocation = this@QuoridorGameState.players[idx].pawnLocation
+            player.remainingWalls = this@QuoridorGameState.players[idx].remainingWalls
         }
 
         return newGameState
     }
 
-    override val printable: String
+    override val stringRepresentation: String
         get() {
             val printableGame = StringBuilder()
             printableGame.append("\n")
@@ -476,7 +481,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                     val cell = if (players.first().pawnLocation.toNotation() == "${c}${i}") {
                         "@"
                     } else if (players.last().pawnLocation.toNotation() == "${c}${i}") {
-                        "o"
+                        "O"
                     } else {
                         " "
                     }
@@ -516,27 +521,27 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
             printableGame.append("\n")
 
             players.forEachIndexed { idx, player ->
-                printableGame.append("P${idx + 1}-${if (idx == 0) "@" else "o"}: ${player.remainingWalls} wall(s) ")
+                printableGame.append("P${idx + 1}-${if (idx == 0) "@" else "O"}: ${player.remainingWalls} wall(s) ")
             }
 
             return printableGame.toString()
         }
 
     override fun toString(): String {
-        return printable
+        return stringRepresentation
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as GameState
+        other as QuoridorGameState
 
         if (size != other.size) return false
         if (numberOfTurn != other.numberOfTurn) return false
         if (placedWalls != other.placedWalls) return false
         if (players != other.players) return false
-        if (printable != other.printable) return false
+        if (stringRepresentation != other.stringRepresentation) return false
 
         return true
     }
@@ -546,7 +551,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         result = 31 * result + numberOfTurn
         result = 31 * result + placedWalls.hashCode()
         result = 31 * result + players.hashCode()
-        result = 31 * result + printable.hashCode()
+        result = 31 * result + stringRepresentation.hashCode()
         return result
     }
 }
