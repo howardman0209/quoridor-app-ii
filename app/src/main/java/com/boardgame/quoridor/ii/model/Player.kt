@@ -7,6 +7,10 @@ class Player(
 ) {
     fun hasReachedGoal() = pawnLocation.y == goalY
 
+    fun getPlayerIndex(): Int {
+        return if (goalY == 0) 1 else 0
+    }
+
     override fun hashCode(): Int {
         var result = goalY
         result = 31 * result + remainingWalls

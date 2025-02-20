@@ -7,6 +7,9 @@ import com.boardgame.quoridor.ii.extension.getFlipped
 import com.boardgame.quoridor.ii.extension.getNearBy
 import com.boardgame.quoridor.ii.extension.toNotation
 import java.util.BitSet
+import java.util.LinkedList
+import java.util.Queue
+import kotlin.collections.plus
 import kotlin.math.min
 
 class GameState(val size: Int) : GameStateProperty<GameState> {
@@ -58,7 +61,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         }
 
         // set placer
-        if (actionMaker.goalY != 0) {
+        if (actionMaker.getPlayerIndex() == 1) {
             placedWalls.set(wallIndex + 2)
         }
         actionMaker.remainingWalls--
@@ -111,12 +114,15 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
     override fun isLegalWallPlacement(action: GameAction.WallPlacement): Boolean {
         val pointOfCheck = action.location
         if (!isLegalWallLocation(pointOfCheck)) {
+            Log.e("isLegalWallPlacement", "illegal wall location")
             return false
         }
 
+        // check crossing
         val wallIndex = getWallIndex(action.location)
         val isWallPlaced = placedWalls.get(wallIndex)
         if (isWallPlaced) {
+            Log.e("isLegalWallPlacement", "wall crossing")
             return false
         }
 
@@ -140,6 +146,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 // overlapping
                 val isHorizontalWall = !placedWalls.get(nearByWallIndex + 1)
                 if (isHorizontalWall) {
+                    Log.e("isLegalWallPlacement", "wall overlapping")
                     return false
                 }
             }
@@ -162,6 +169,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 // overlapping
                 val isVerticalWall = placedWalls.get(wallIndex + 1)
                 if (isVerticalWall) {
+                    Log.e("isLegalWallPlacement", "wall overlapping")
                     return false
                 }
             }
@@ -172,10 +180,12 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
             val temporaryGameState = this.clone()
             temporaryGameState.takeGameAction(action)
             if (temporaryGameState.getShortestPathToGoal(true).isNullOrEmpty()) {
+                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.player().getPlayerIndex() + 1}")
                 return false
             }
 
             if (temporaryGameState.getShortestPathToGoal(false).isNullOrEmpty()) {
+                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.opponent().getPlayerIndex() + 1}")
                 return false
             }
         }
@@ -296,26 +306,22 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
         return false
     }
 
-    override fun getLegalPawnMovements(forPlayer: Boolean): List<GameAction.PawnMovement> {
-        var legalNewLocations = arrayOf<Location>()
+    private fun findLegalNextPawnLocations(pointOfSearch: Location, opponentLocation: Location? = null): List<Location> {
+        val legalNewLocations = mutableListOf<Location>()
 
-        val actionMaker = if (forPlayer) player() else opponent()
-        val actionMakerOpponent = if (forPlayer) opponent() else player()
-
-        val pointOfCheck = actionMaker.pawnLocation
         val directions = arrayOf(Direction.N, Direction.S, Direction.W, Direction.E)
         for (direction in directions) {
             val oneStepDelta = direction.getDelta(1)
-            val oneStepLocation = Location(pointOfCheck.x + oneStepDelta.first, pointOfCheck.y + oneStepDelta.second)
+            val oneStepLocation = Location(pointOfSearch.x + oneStepDelta.first, pointOfSearch.y + oneStepDelta.second)
             if (!isLegalPawnLocation(oneStepLocation)) {
                 continue
             }
 
-            if (isBlocked(pointOfCheck, oneStepLocation)) {
+            if (isBlocked(pointOfSearch, oneStepLocation)) {
                 continue
             }
 
-            val isMeetOpponent = oneStepLocation == actionMakerOpponent.pawnLocation
+            val isMeetOpponent = oneStepLocation == opponentLocation
             if (!isMeetOpponent) {
                 legalNewLocations += oneStepLocation
                 continue
@@ -323,12 +329,12 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
 
             // if meet opponent case
             val twoStepDelta = direction.getDelta(2)
-            val twoStepLocation = Location(pointOfCheck.x + twoStepDelta.first, pointOfCheck.y + twoStepDelta.second)
+            val twoStepLocation = Location(pointOfSearch.x + twoStepDelta.first, pointOfSearch.y + twoStepDelta.second)
             val isJumpAvailable = !isBlocked(oneStepLocation, twoStepLocation)
 
             if (isJumpAvailable) {
                 val threeStepDelta = direction.getDelta(3)
-                val threeStepLocation = Location(pointOfCheck.x + threeStepDelta.first, pointOfCheck.y + threeStepDelta.second)
+                val threeStepLocation = Location(pointOfSearch.x + threeStepDelta.first, pointOfSearch.y + threeStepDelta.second)
                 legalNewLocations += threeStepLocation
                 continue
             }
@@ -337,7 +343,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
             val nearByDirection = direction.getNearBy()
             for (direction in nearByDirection) {
                 val oneDiagonalStepDelta = direction.getDelta(1)
-                val oneDiagonalStepLocation = Location(pointOfCheck.x + oneDiagonalStepDelta.first, pointOfCheck.y + oneDiagonalStepDelta.second)
+                val oneDiagonalStepLocation = Location(pointOfSearch.x + oneDiagonalStepDelta.first, pointOfSearch.y + oneDiagonalStepDelta.second)
                 if (!isLegalPawnLocation(oneDiagonalStepLocation)) {
                     continue
                 }
@@ -349,6 +355,14 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
                 legalNewLocations += oneDiagonalStepLocation
             }
         }
+
+        return legalNewLocations
+    }
+
+    override fun getLegalPawnMovements(forPlayer: Boolean): List<GameAction.PawnMovement> {
+        val actionMaker = if (forPlayer) player() else opponent()
+        val actionMakerOpponent = if (forPlayer) opponent() else player()
+        val legalNewLocations = findLegalNextPawnLocations(pointOfSearch = actionMaker.pawnLocation, opponentLocation = actionMakerOpponent.pawnLocation)
 
         return legalNewLocations.map {
             GameAction.PawnMovement(
@@ -391,7 +405,36 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
     }
 
     override fun getShortestPathToGoal(forPlayer: Boolean): List<Location>? {
-        TODO("Not yet implemented")
+        val targetPlayer = if (forPlayer) player() else opponent()
+        val targetPlayerOpponent = if (forPlayer) opponent() else player()
+
+        val pointOfSearch = targetPlayer.pawnLocation
+        val queue: Queue<Pair<Location, List<Location>>> = LinkedList()
+        val visited: MutableList<Location> = mutableListOf()
+
+        queue.add(pointOfSearch to emptyList())
+        visited.add(pointOfSearch)
+
+        while (queue.isNotEmpty()) {
+            queue.poll()?.let { (current, route) ->
+                if (current.y == targetPlayer.goalY) {
+                    return route + listOf(current)
+                }
+
+                val validMoves = findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation)
+
+                validMoves.forEach { move ->
+                    val isVisited = visited.contains(move)
+                    if (!isVisited) {
+                        val newRoute = route + listOf(current)
+                        queue.add(move to newRoute)
+                        visited.add(move)
+                    }
+                }
+            }
+        }
+
+        return null // If no route is found
     }
 
     override fun isTerminated(): Boolean {
@@ -401,7 +444,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
     override fun clone(): GameState {
         val newGameState = GameState(size)
         newGameState.numberOfTurn = this@GameState.numberOfTurn
-        newGameState.placedWalls.and(this@GameState.placedWalls)
+        newGameState.placedWalls.or(this@GameState.placedWalls)
         newGameState.players.forEachIndexed { idx, player ->
             player.pawnLocation = this@GameState.players[idx].pawnLocation
             player.remainingWalls = this@GameState.players[idx].remainingWalls
@@ -473,7 +516,7 @@ class GameState(val size: Int) : GameStateProperty<GameState> {
             printableGame.append("\n")
 
             players.forEachIndexed { idx, player ->
-                printableGame.append("P${idx + 1}: ${player.remainingWalls} wall(s) ")
+                printableGame.append("P${idx + 1}-${if (idx == 0) "@" else "o"}: ${player.remainingWalls} wall(s) ")
             }
 
             return printableGame.toString()

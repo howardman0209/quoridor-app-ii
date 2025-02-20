@@ -15,12 +15,13 @@ class MainActivity : AppCompatActivity() {
         val gameState = GameState(size = 9)
         val newGameState = gameState.clone()
         gameState.takeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
+        gameState.takeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(0, 1)))
+        gameState.takeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
         gameState.takeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 1)))
-        gameState.takeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(1, 1)))
         Log.d("MainActivity", "gameState: $gameState")
         Log.d("MainActivity", "gameState: ${gameState.hashCode()}, ${newGameState.hashCode()}")
         Log.d("MainActivity", "gameState = newGameState: ${gameState == newGameState}")
-        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
+        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(5, 0)))
         Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
     }
 }
