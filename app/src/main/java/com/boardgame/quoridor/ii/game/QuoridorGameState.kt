@@ -412,20 +412,24 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         val targetPlayer = if (forPlayer) player() else opponent()
         val targetPlayerOpponent = if (forPlayer) opponent() else player()
 
-        // BFS
-//        val shortestDistance = SearchUtil.bfsShortestDistance(
-//            pointOfSearch = targetPlayer.pawnLocation,
-//            getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
-//            isReachGoal = { current -> current.y == targetPlayer.goalY }
-//        )
-
-        // A*
-        val shortestDistance = SearchUtil.aStarShortestDistance(
-            pointOfSearch = targetPlayer.pawnLocation,
-            getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
-            isReachGoal = { current -> current.y == targetPlayer.goalY },
-            heuristic = { current -> abs(current.y - targetPlayer.goalY) }
-        )
+        // Apply A* for obstacle-rich maze-like environments where heuristic guidance improves efficiency,
+        // otherwise use BFS for uncluttered paths where blind search performs better with linear complexity
+        val shortestDistance = if (players.sumOf { it.remainingWalls } < 5) {
+            // A*
+            SearchUtil.aStarShortestDistance(
+                pointOfSearch = targetPlayer.pawnLocation,
+                getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
+                isReachGoal = { current -> current.y == targetPlayer.goalY },
+                heuristic = { current -> abs(current.y - targetPlayer.goalY) }
+            )
+        } else {
+            // BFS
+            SearchUtil.bfsShortestDistance(
+                pointOfSearch = targetPlayer.pawnLocation,
+                getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
+                isReachGoal = { current -> current.y == targetPlayer.goalY }
+            )
+        }
 
         return shortestDistance
     }

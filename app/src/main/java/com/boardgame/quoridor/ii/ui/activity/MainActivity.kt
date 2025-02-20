@@ -31,32 +31,27 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "gameState: $gameState")
         Log.d("MainActivity", "gameState: ${gameState.hashCode()}, ${newGameState.hashCode()}")
         Log.d("MainActivity", "gameState = newGameState: ${gameState == newGameState}")
+        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(0, 0)))
+        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
 
         DebugUtil.measureExecutionTime {
-            Log.d("MainActivity", "sd for player: ${gameState.getShortestPathToGoal()}")
+            val legalGameActions = gameState.getLegalGameActions()
+            legalGameActions.forEachIndexed { idx, action ->
+                Log.d("MainActivity", "#$idx: ${action.toNotation()} $action")
+            }
         }
-
-        DebugUtil.measureExecutionTime {
-            Log.d("MainActivity", "sd for opponent: ${gameState.getShortestPathToGoal(false)}")
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            DebugUtil.measureExecutionTime {
+                val gameState = QuoridorGameState(size = 9)
+                while (!gameState.isTerminated()) {
+                    val legalGameActions = gameState.getLegalGameActions()
+                    legalGameActions.randomOrNull()?.let {
+                        gameState.executeGameAction(it)
+                        Log.d("MainActivity", "gameState: $gameState")
+                    }
+                }
+            }
         }
-//        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(5, 0)))
-//        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
-//        val legalGameActions = gameState.getLegalGameActions()
-//        legalGameActions.forEachIndexed { idx, action ->
-//            Log.d("MainActivity", "#$idx: ${action.toNotation()} $action")
-//        }
-//        Log.d("MainActivity", "newGameState: $newGameState")
-
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val startTime = System.currentTimeMillis()
-//            while (!gameState.isTerminated()) {
-//                val legalGameActions = gameState.getLegalGameActions()
-//                legalGameActions.randomOrNull()?.let {
-//                    gameState.executeGameAction(it)
-//                    Log.d("MainActivity", "gameState: $gameState")
-//                }
-//            }
-//            Log.d("MainActivity", "Duration: ${System.currentTimeMillis() - startTime}")
-//        }
     }
 }
