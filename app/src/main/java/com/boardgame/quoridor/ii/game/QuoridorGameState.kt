@@ -11,10 +11,9 @@ import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Location
 import com.boardgame.quoridor.ii.model.Orientation
 import com.boardgame.quoridor.ii.model.Player
+import com.boardgame.quoridor.ii.util.SearchUtil
 import java.util.BitSet
-import java.util.LinkedList
-import java.util.Queue
-import kotlin.collections.plus
+import kotlin.math.abs
 import kotlin.math.min
 
 class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
@@ -335,7 +334,7 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
             // if meet opponent case
             val twoStepDelta = direction.getDelta(2)
             val twoStepLocation = Location(pointOfSearch.x + twoStepDelta.first, pointOfSearch.y + twoStepDelta.second)
-            val isJumpAvailable = !isBlocked(oneStepLocation, twoStepLocation)
+            val isJumpAvailable = !isBlocked(oneStepLocation, twoStepLocation) && isLegalPawnLocation(twoStepLocation)
 
             if (isJumpAvailable) {
                 val threeStepDelta = direction.getDelta(3)
@@ -413,33 +412,22 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         val targetPlayer = if (forPlayer) player() else opponent()
         val targetPlayerOpponent = if (forPlayer) opponent() else player()
 
-        val pointOfSearch = targetPlayer.pawnLocation
-        val queue: Queue<Pair<Location, List<Location>>> = LinkedList()
-        val visited: MutableList<Location> = mutableListOf()
+        // BFS
+//        val shortestDistance = SearchUtil.bfsShortestDistance(
+//            pointOfSearch = targetPlayer.pawnLocation,
+//            getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
+//            isReachGoal = { current -> current.y == targetPlayer.goalY }
+//        )
 
-        queue.add(pointOfSearch to emptyList())
-        visited.add(pointOfSearch)
+        // A*
+        val shortestDistance = SearchUtil.aStarShortestDistance(
+            pointOfSearch = targetPlayer.pawnLocation,
+            getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
+            isReachGoal = { current -> current.y == targetPlayer.goalY },
+            heuristic = { current -> abs(current.y - targetPlayer.goalY) }
+        )
 
-        while (queue.isNotEmpty()) {
-            queue.poll()?.let { (current, route) ->
-                if (current.y == targetPlayer.goalY) {
-                    return route + listOf(current)
-                }
-
-                val validMoves = findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation)
-
-                validMoves.forEach { move ->
-                    val isVisited = visited.contains(move)
-                    if (!isVisited) {
-                        val newRoute = route + listOf(current)
-                        queue.add(move to newRoute)
-                        visited.add(move)
-                    }
-                }
-            }
-        }
-
-        return null // If no route is found
+        return shortestDistance
     }
 
     override fun isTerminated(): Boolean {
