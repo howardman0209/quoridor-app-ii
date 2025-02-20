@@ -33,25 +33,39 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "gameState = newGameState: ${gameState == newGameState}")
         val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(0, 0)))
         Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
+        gameState.getRandomLegalWallPlacement()
 
-        DebugUtil.measureExecutionTime {
-            val legalGameActions = gameState.getLegalGameActions()
-            legalGameActions.forEachIndexed { idx, action ->
-                Log.d("MainActivity", "#$idx: ${action.toNotation()} $action")
-            }
-        }
-        
+//        DebugUtil.measureExecutionTime {
+//            val legalGameActions = gameState.getLegalGameActions()
+//            legalGameActions.forEachIndexed { idx, action ->
+//                Log.d("MainActivity", "#$idx: ${action.toNotation()} $action")
+//            }
+//        }
+
         CoroutineScope(Dispatchers.IO).launch {
-            DebugUtil.measureExecutionTime {
+            val simGame = DebugUtil.measureExecutionTime {
                 val gameState = QuoridorGameState(size = 9)
                 while (!gameState.isTerminated()) {
                     val legalGameActions = gameState.getLegalGameActions()
                     legalGameActions.randomOrNull()?.let {
                         gameState.executeGameAction(it)
-                        Log.d("MainActivity", "gameState: $gameState")
                     }
                 }
+                gameState
             }
+            Log.d("simulation, old", "simGame: $simGame")
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val simGame = DebugUtil.measureExecutionTime {
+                val gameState = QuoridorGameState(size = 9)
+                while (!gameState.isTerminated()) {
+                    val legalGameActions = gameState.getRandomLegalGameAction()
+                    gameState.executeGameAction(legalGameActions)
+                }
+                gameState
+            }
+            Log.d("simulation, new", "simGame: $simGame")
         }
     }
 }

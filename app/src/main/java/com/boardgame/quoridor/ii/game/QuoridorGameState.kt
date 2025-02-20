@@ -395,6 +395,23 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         return actionList
     }
 
+    override fun getRandomLegalWallPlacement(): GameAction.WallPlacement {
+        val wallIndices = (0 until (size - 1) * (size - 1))
+            .filter { !placedWalls[it * 3] }
+            .toIntArray()
+
+        var wallPlacement: GameAction.WallPlacement
+        do {
+            val wallIndex = wallIndices.random()
+            wallPlacement = GameAction.WallPlacement(
+                orientation = Orientation.entries.random(),
+                location = Location(wallIndex % (size - 1), wallIndex / (size - 1))
+            )
+        } while (!isLegalWallPlacement(wallPlacement))
+
+        return wallPlacement
+    }
+
     private fun getAllWallPlacement(): List<GameAction.WallPlacement> {
         val wallIndices = (0 until (size - 1) * (size - 1))
             .filter { placedWalls[it * 3] }

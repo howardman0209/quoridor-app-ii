@@ -3,6 +3,7 @@ package com.boardgame.quoridor.ii.game
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Location
 import com.boardgame.quoridor.ii.model.Player
+import kotlin.random.Random
 
 abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState> {
     abstract fun player(): Player
@@ -17,10 +18,20 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
 
     abstract fun getLegalWallPlacements(): List<GameAction.WallPlacement>
 
+    abstract fun getRandomLegalWallPlacement(): GameAction.WallPlacement
+
     abstract fun getShortestPathToGoal(forPlayer: Boolean = true): List<Location>?
 
     override fun getLegalGameActions(): List<GameAction> {
         val legalMoves = getLegalPawnMovements()
         return if (player().remainingWalls > 0) legalMoves + getLegalWallPlacements() else legalMoves
+    }
+
+    fun getRandomLegalGameAction(): GameAction {
+        return if (Random.nextDouble() < 0.5 || player().remainingWalls <= 0) {
+            getLegalPawnMovements().random()
+        } else {
+            getRandomLegalWallPlacement()
+        }
     }
 }
