@@ -20,6 +20,7 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
     abstract fun getShortestPathToGoal(forPlayer: Boolean = true): List<Location>?
 
     override fun getLegalGameActions(): List<GameAction> {
-        return getLegalPawnMovements() + getLegalWallPlacements()
+        val legalMoves = getLegalPawnMovements()
+        return if (player().remainingWalls > 0) legalMoves + getLegalWallPlacements() else legalMoves
     }
 }
