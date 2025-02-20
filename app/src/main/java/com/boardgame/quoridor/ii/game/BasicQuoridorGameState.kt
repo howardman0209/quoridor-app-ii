@@ -20,6 +20,8 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
 
     abstract fun getRandomLegalWallPlacement(): GameAction.WallPlacement
 
+    abstract fun isPathToGoalExist(forPlayer: Boolean = true): Boolean
+
     abstract fun getShortestPathToGoal(forPlayer: Boolean = true): List<Location>?
 
     override fun getLegalGameActions(): List<GameAction> {

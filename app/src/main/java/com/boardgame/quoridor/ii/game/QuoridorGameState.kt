@@ -183,12 +183,12 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         if (isConnectingWall(action.location, action.orientation)) {
             val temporaryGameState = this.deepCopy()
             temporaryGameState.executeGameAction(action)
-            if (temporaryGameState.getShortestPathToGoal(true).isNullOrEmpty()) {
+            if (temporaryGameState.isPathToGoalExist(true)) {
 //                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.player().getPlayerIndex() + 1}")
                 return false
             }
 
-            if (temporaryGameState.getShortestPathToGoal(false).isNullOrEmpty()) {
+            if (temporaryGameState.isPathToGoalExist(false)) {
 //                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.opponent().getPlayerIndex() + 1}")
                 return false
             }
@@ -423,6 +423,22 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
                 location = Location(it % (size - 1), it / (size - 1))
             )
         }
+    }
+
+    override fun isPathToGoalExist(forPlayer: Boolean): Boolean {
+        val targetPlayer = if (forPlayer) player() else opponent()
+        val targetPlayerOpponent = if (forPlayer) opponent() else player()
+
+        // DFS
+        return SearchUtil.heuristicDFSPathToGoal(
+            pointOfSearch = targetPlayer.pawnLocation,
+            getNextMoves = { current -> findLegalNextPawnLocations(current, targetPlayerOpponent.pawnLocation) },
+            isReachGoal = { current -> current.y == targetPlayer.goalY },
+            heuristic = { current -> abs(current.y - targetPlayer.goalY) }
+        )
+
+        // BFS
+//        return !getShortestPathToGoal(forPlayer).isNullOrEmpty()
     }
 
     override fun getShortestPathToGoal(forPlayer: Boolean): List<Location>? {

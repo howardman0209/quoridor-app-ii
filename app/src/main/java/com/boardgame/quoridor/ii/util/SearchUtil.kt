@@ -1,5 +1,6 @@
 package com.boardgame.quoridor.ii.util
 
+import android.util.Log
 import com.boardgame.quoridor.ii.model.Location
 import java.util.LinkedList
 import java.util.PriorityQueue
@@ -80,5 +81,21 @@ object SearchUtil {
         }
 
         return null
+    }
+
+    fun heuristicDFSPathToGoal(
+        pointOfSearch: Location,
+        getNextMoves: (Location) -> List<Location>,
+        isReachGoal: (Location) -> Boolean,
+        heuristic: (point: Location) -> Int,
+        visited: HashSet<Location> = hashSetOf()
+    ): Boolean {
+        if (pointOfSearch in visited) return false
+        if (isReachGoal(pointOfSearch)) return true
+
+        visited.add(pointOfSearch)
+        return getNextMoves(pointOfSearch).sortedBy { heuristic(it) }.any { next ->
+            heuristicDFSPathToGoal(next, getNextMoves, isReachGoal, heuristic, visited)
+        }
     }
 }

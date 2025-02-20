@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val gameState = QuoridorGameState(size = 9)
-        val newGameState = gameState.deepCopy()
         gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
         gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(0, 1)))
         gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
@@ -28,12 +27,21 @@ class MainActivity : AppCompatActivity() {
         gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 0)))
         gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 7)))
         gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 7)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 2)))
         Log.d("MainActivity", "gameState: $gameState")
-        Log.d("MainActivity", "gameState: ${gameState.hashCode()}, ${newGameState.hashCode()}")
-        Log.d("MainActivity", "gameState = newGameState: ${gameState == newGameState}")
-        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(0, 0)))
-        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
-        gameState.getRandomLegalWallPlacement()
+
+//        DebugUtil.measureExecutionTime {
+//            Log.d("MainActivity", "isExistPathToGoal: ${gameState.isExistPathToGoal()}")
+//        }
+//
+//        DebugUtil.measureExecutionTime {
+//            Log.d("MainActivity", "getShortestPathToGoal: ${gameState.getShortestPathToGoal()}")
+//        }
+
+//        DebugUtil.measureExecutionTime {
+//            val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(0, 0)))
+//            Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
+//        }
 
 //        DebugUtil.measureExecutionTime {
 //            val legalGameActions = gameState.getLegalGameActions()
@@ -42,30 +50,30 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val simGame = DebugUtil.measureExecutionTime {
-                val gameState = QuoridorGameState(size = 9)
-                while (!gameState.isTerminated()) {
-                    val legalGameActions = gameState.getLegalGameActions()
-                    legalGameActions.randomOrNull()?.let {
-                        gameState.executeGameAction(it)
-                    }
-                }
-                gameState
-            }
-            Log.d("simulation, old", "simGame: $simGame")
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val simGame = DebugUtil.measureExecutionTime {
+//                val gameState = QuoridorGameState(size = 9)
+//                while (!gameState.isTerminated()) {
+//                    val legalGameActions = gameState.getLegalGameActions()
+//                    legalGameActions.randomOrNull()?.let {
+//                        gameState.executeGameAction(it)
+//                    }
+//                }
+//                gameState
+//            }
+//            Log.d("simulation, old", "simGame: $simGame")
+//        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val simGame = DebugUtil.measureExecutionTime {
-                val gameState = QuoridorGameState(size = 9)
-                while (!gameState.isTerminated()) {
-                    val legalGameActions = gameState.getRandomLegalGameAction()
-                    gameState.executeGameAction(legalGameActions)
-                }
-                gameState
-            }
-            Log.d("simulation, new", "simGame: $simGame")
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val simGame = DebugUtil.measureExecutionTime {
+//                val gameState = QuoridorGameState(size = 9)
+//                while (!gameState.isTerminated()) {
+//                    val legalGameActions = gameState.getRandomLegalGameAction()
+//                    gameState.executeGameAction(legalGameActions)
+//                }
+//                gameState
+//            }
+//            Log.d("simulation, new", "simGame: $simGame")
+//        }
     }
 }
