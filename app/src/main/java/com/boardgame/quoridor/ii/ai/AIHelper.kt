@@ -5,33 +5,64 @@ import com.boardgame.quoridor.ii.game.QuoridorGameState
 import com.boardgame.quoridor.ii.model.Player
 
 object AIHelper {
+    private const val TAG = "AIHelper"
+
     /**
      * heuristic is added into the game play simulation
-     * 1.
+     * 1. if opponent has no wall remains, only choose the next move in the shortest path to goal
      */
-    private inline fun <T> simulatePlay(
+    private inline fun <T> simulatePlayWithHeuristic(
         gameState: QuoridorGameState,
         crossinline onTermination: (QuoridorGameState) -> T
     ): T {
         val simulationGame = gameState.deepCopy()
 
-        generateSequence { simulationGame.getRandomLegalGameAction() }
-            .forEach { action ->
-                simulationGame.executeGameAction(action)
-                if (simulationGame.winner() != null) {
-                    return onTermination(simulationGame)
-                }
+        generateSequence {
+            if (simulationGame.opponent().remainingWalls <= 0) {
+                return@generateSequence simulationGame.getLegalPawnMovementToNearestGoal()
             }
+
+            simulationGame.getRandomLegalGameAction()
+        }.forEach { action ->
+//            Log.d(TAG, "simulationGame: $simulationGame") // this log significantly time consuming
+            simulationGame.executeGameAction(action)
+            if (simulationGame.winner() != null) {
+                return onTermination(simulationGame)
+            }
+        }
+
+        // should not reach here
+        throw IllegalStateException("Game simulation did not produce a winner")
+    }
+
+    /**
+     * Pure random game play simulation
+     */
+    private inline fun <T> simulatePlayPureRandom(
+        gameState: QuoridorGameState,
+        crossinline onTermination: (QuoridorGameState) -> T
+    ): T {
+        val simulationGame = gameState.deepCopy()
+
+        generateSequence {
+            simulationGame.getRandomLegalGameAction()
+        }.forEach { action ->
+//            Log.d(TAG, "simulationGame: $simulationGame") // this log significantly time consuming
+            simulationGame.executeGameAction(action)
+            if (simulationGame.winner() != null) {
+                return onTermination(simulationGame)
+            }
+        }
 
         // should not reach here
         throw IllegalStateException("Game simulation did not produce a winner")
     }
 
     fun simulatePlayGameState(gameState: QuoridorGameState): QuoridorGameState {
-        return simulatePlay(gameState) { it }
+        return simulatePlayWithHeuristic(gameState) { it }
     }
 
     fun simulatePlayWinner(gameState: QuoridorGameState): Player {
-        return simulatePlay(gameState) { it.winner()!! }
+        return simulatePlayWithHeuristic(gameState) { it.winner()!! }
     }
 }

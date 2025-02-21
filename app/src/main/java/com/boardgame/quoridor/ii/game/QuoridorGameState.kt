@@ -512,7 +512,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
                     } else if (players.last().pawnLocation.toNotation() == "${c}${i}") {
                         "O"
                     } else {
-                        " "
+                        " " // ▢
                     }
                     printableGame.append(" $cell ")
                     if (c < charList.last()) {

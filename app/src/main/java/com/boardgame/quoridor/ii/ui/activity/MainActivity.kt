@@ -54,10 +54,13 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
-            val simGame = DebugUtil.measureExecutionTime {
-                AIHelper.simulatePlayGameState(gameState)
+            DebugUtil.measureExecutionTime {
+                var simCount = 0
+                while (simCount++ < 1000) {
+                    val simGame = AIHelper.simulatePlayGameState(gameState)
+                    Log.d("simulation", "simGame: $simGame")
+                }
             }
-            Log.d("simulation", "simGame: $simGame")
         }
     }
 }

@@ -42,4 +42,13 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
             getRandomLegalWallPlacement()
         }
     }
+
+    fun getLegalPawnMovementToNearestGoal(): GameAction.PawnMovement {
+        val shortestPathToGoal = getShortestPathToGoal() ?: throw Exception("Invalid game state. Shortest path to goal for player do not exist.")
+        require(shortestPathToGoal.size >= 2) { "Invalid shortest path returned. Please check 'fun getShortestPathToGoal()'" }
+        return GameAction.PawnMovement(
+            oldLocation = shortestPathToGoal.first(),
+            newLocation = shortestPathToGoal[1]
+        )
+    }
 }
