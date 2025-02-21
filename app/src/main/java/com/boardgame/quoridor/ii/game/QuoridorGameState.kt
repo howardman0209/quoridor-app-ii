@@ -6,6 +6,7 @@ import com.boardgame.quoridor.ii.extension.getDelta
 import com.boardgame.quoridor.ii.extension.getFlipped
 import com.boardgame.quoridor.ii.extension.getNearBy
 import com.boardgame.quoridor.ii.extension.toNotation
+import com.boardgame.quoridor.ii.model.BoardSize
 import com.boardgame.quoridor.ii.model.Direction
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Location
@@ -16,7 +17,8 @@ import java.util.BitSet
 import kotlin.math.abs
 import kotlin.math.min
 
-class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
+class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
+    val size = boardSize.value
     var numberOfTurn: Int = 1
         private set
 
@@ -43,6 +45,10 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
     override fun player(): Player = players[(numberOfTurn + 1) % 2]
 
     override fun opponent(): Player = players[numberOfTurn % 2]
+
+    override fun winner(): Player? {
+        return players.firstOrNull { it.hasReachedGoal() }
+    }
 
     private fun movePawn(location: Location, forPlayer: Boolean = true) {
         val actionMaker = if (forPlayer) player() else opponent()
@@ -467,12 +473,8 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         return shortestDistance
     }
 
-    override fun isTerminated(): Boolean {
-        return players.any { it.hasReachedGoal() }
-    }
-
     override fun deepCopy(): QuoridorGameState {
-        val newGameState = QuoridorGameState(size)
+        val newGameState = QuoridorGameState(BoardSize.fromInt(size))
         newGameState.numberOfTurn = this@QuoridorGameState.numberOfTurn
         newGameState.placedWalls.or(this@QuoridorGameState.placedWalls)
         newGameState.players.forEachIndexed { idx, player ->
@@ -490,17 +492,19 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
             printableGame.append("Turn: #$numberOfTurn \n")
 
             val size = size
+            val padding = (size / 10) + 1
             val allWallPlacementNotions = getAllWallPlacement().map { "${it.location.toNotation()}${it.orientation.notation}" }
             val charList = A_TO_Z.substring(0, size).map { it }
-            printableGame.append(" ".repeat(2))// padding
+            printableGame.append(" ".repeat(padding + 1))// padding
             val horizontalLabel = charList.joinToString(" ") { " $it " }
             printableGame.append(horizontalLabel)
             printableGame.append("\n")
-            printableGame.append(" ".repeat(2))// padding
+            printableGame.append(" ".repeat(padding + 1))// padding
             printableGame.append("-".repeat(horizontalLabel.length))
             printableGame.append("\n")
             for (i in size downTo 1) {
-                printableGame.append("$i|")
+                printableGame.append("$i".padStart(padding, ' '))
+                printableGame.append("|")
                 // grid line
                 for (c in charList) {
                     val cell = if (players.first().pawnLocation.toNotation() == "${c}${i}") {
@@ -524,7 +528,8 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
                 // border line
                 printableGame.append("\n")
                 if (i > 1) {
-                    printableGame.append(" |")
+                    printableGame.append(" ".repeat(padding))
+                    printableGame.append("|")
                     for (c in charList) {
                         val hWall = if ("${c}${i - 1}h" in allWallPlacementNotions || "${c - 1}${i - 1}h" in allWallPlacementNotions) {
                             "-"
@@ -541,7 +546,7 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
                     printableGame.append("\n")
                 }
             }
-            printableGame.append(" ".repeat(2))// padding
+            printableGame.append(" ".repeat(padding + 1))// padding
             printableGame.append("-".repeat(horizontalLabel.length))
             printableGame.append("\n")
 

@@ -3,9 +3,11 @@ package com.boardgame.quoridor.ii.ui.activity
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.boardgame.quoridor.ii.ai.AIHelper
 import com.boardgame.quoridor.ii.extension.toNotation
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.game.QuoridorGameState
+import com.boardgame.quoridor.ii.model.BoardSize
 import com.boardgame.quoridor.ii.model.Location
 import com.boardgame.quoridor.ii.model.Orientation
 import com.boardgame.quoridor.ii.util.DebugUtil
@@ -17,18 +19,18 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val gameState = QuoridorGameState(size = 9)
-        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(0, 1)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 1)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(5, 1)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 2)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 0)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 7)))
-        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 7)))
+//        val gameState = QuoridorGameState(size = 9)
+//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(0, 1)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 1)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(5, 1)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 2)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 0)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 7)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 7)))
 //        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 2)))
-        Log.d("MainActivity", "gameState: $gameState")
+//        Log.d("MainActivity", "gameState: $gameState")
 
 //        DebugUtil.measureExecutionTime {
 //            Log.d("MainActivity", "isExistPathToGoal: ${gameState.isExistPathToGoal()}")
@@ -50,30 +52,12 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val simGame = DebugUtil.measureExecutionTime {
-//                val gameState = QuoridorGameState(size = 9)
-//                while (!gameState.isTerminated()) {
-//                    val legalGameActions = gameState.getLegalGameActions()
-//                    legalGameActions.randomOrNull()?.let {
-//                        gameState.executeGameAction(it)
-//                    }
-//                }
-//                gameState
-//            }
-//            Log.d("simulation, old", "simGame: $simGame")
-//        }
-
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val simGame = DebugUtil.measureExecutionTime {
-//                val gameState = QuoridorGameState(size = 9)
-//                while (!gameState.isTerminated()) {
-//                    val legalGameActions = gameState.getRandomLegalGameAction()
-//                    gameState.executeGameAction(legalGameActions)
-//                }
-//                gameState
-//            }
-//            Log.d("simulation, new", "simGame: $simGame")
-//        }
+        CoroutineScope(Dispatchers.Default).launch {
+            val gameState = QuoridorGameState(BoardSize.SIZE_9)
+            val simGame = DebugUtil.measureExecutionTime {
+                AIHelper.simulatePlayGameState(gameState)
+            }
+            Log.d("simulation", "simGame: $simGame")
+        }
     }
 }

@@ -10,6 +10,8 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
 
     abstract fun opponent(): Player
 
+    abstract fun winner(): Player?
+
     abstract fun isLegalPawnMovement(action: GameAction.PawnMovement, forPlayer: Boolean = true): Boolean
 
     abstract fun isLegalWallPlacement(action: GameAction.WallPlacement): Boolean
@@ -23,6 +25,10 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
     abstract fun isPathToGoalExist(forPlayer: Boolean = true): Boolean
 
     abstract fun getShortestPathToGoal(forPlayer: Boolean = true): List<Location>?
+
+    override fun isTerminated(): Boolean {
+        return winner() != null
+    }
 
     override fun getLegalGameActions(): List<GameAction> {
         val legalMoves = getLegalPawnMovements()
