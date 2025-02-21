@@ -6,6 +6,7 @@ import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
 
 abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState> {
+
     abstract fun player(): Player
 
     abstract fun opponent(): Player
@@ -24,7 +25,7 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
 
     abstract fun isPathToGoalExist(forPlayer: Boolean = true): Boolean
 
-    abstract fun getShortestPathToGoal(forPlayer: Boolean = true): List<Location>?
+    abstract fun getShortestPathToGoal(forPlayer: Boolean = true, considerOpponent: Boolean = true): List<Location>?
 
     override fun isTerminated(): Boolean {
         return winner() != null
@@ -44,11 +45,13 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
     }
 
     fun getLegalPawnMovementToNearestGoal(): GameAction.PawnMovement {
-        val shortestPathToGoal = getShortestPathToGoal() ?: throw Exception("Invalid game state. Shortest path to goal for player do not exist. $this")
-        require(shortestPathToGoal.size >= 2) { "Invalid shortest path returned. Please check 'fun getShortestPathToGoal()'" }
-        return GameAction.PawnMovement(
-            oldLocation = shortestPathToGoal.first(),
-            newLocation = shortestPathToGoal[1]
-        )
+        val shortestPathToGoal = getShortestPathToGoal(considerOpponent = false) ?: throw Exception("Invalid game state. Shortest path to goal for player do not exist. $this")
+        require(shortestPathToGoal.size >= 2) { "Invalid shortest path returned. Please check 'fun getShortestPathToGoal()' $this" }
+
+        if (shortestPathToGoal[1] == opponent().pawnLocation) {
+            return getLegalPawnMovements().random()
+        }
+
+        return GameAction.PawnMovement(newPawnLocation = shortestPathToGoal[1])
     }
 }

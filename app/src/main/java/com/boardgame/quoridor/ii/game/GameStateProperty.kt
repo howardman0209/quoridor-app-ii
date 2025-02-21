@@ -8,8 +8,6 @@ interface GameStateProperty<T> {
 
     fun executeGameAction(action: GameAction)
 
-    fun reverseGameAction(action: GameAction)
-
     fun isTerminated(): Boolean
 
     fun deepCopy(): T

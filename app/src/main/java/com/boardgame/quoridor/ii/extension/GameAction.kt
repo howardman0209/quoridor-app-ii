@@ -4,7 +4,7 @@ import com.boardgame.quoridor.ii.model.GameAction
 
 fun GameAction.toNotation(): String {
     return when (this) {
-        is GameAction.PawnMovement -> newLocation.toNotation()
-        is GameAction.WallPlacement -> "${location.toNotation()}${orientation.notation}"
+        is GameAction.PawnMovement -> newPawnLocation.toNotation()
+        is GameAction.WallPlacement -> "${wallLocation.toNotation()}${orientation.notation}"
     }
 }

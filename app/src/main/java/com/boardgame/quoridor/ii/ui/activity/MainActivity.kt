@@ -14,52 +14,41 @@ import com.boardgame.quoridor.ii.model.Orientation
 import com.boardgame.quoridor.ii.util.DebugUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        val gameState = QuoridorGameState(size = 9)
-//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 1)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(0, 1)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(2, 1)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 1)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(5, 1)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 2)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 0)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 7)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(5, 7)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 2)))
-//        Log.d("MainActivity", "gameState: $gameState")
-
-//        DebugUtil.measureExecutionTime {
-//            Log.d("MainActivity", "isExistPathToGoal: ${gameState.isExistPathToGoal()}")
-//        }
+//        val gameState = QuoridorGameState(BoardSize.SIZE_9)
+//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(5, 4)))
+//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 4)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(3, 3)))
+//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 4)))
 //
-//        DebugUtil.measureExecutionTime {
-//            Log.d("MainActivity", "getShortestPathToGoal: ${gameState.getShortestPathToGoal()}")
+//        val legalPawnMovements = gameState.getLegalPawnMovements()
+//        legalPawnMovements.forEach {
+//            Log.d("MainActivity", "legalPawnMovements: ${it.toNotation()}")
 //        }
 
-//        DebugUtil.measureExecutionTime {
-//            val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.VERTICAL, Location(0, 0)))
-//            Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
-//        }
-
-//        DebugUtil.measureExecutionTime {
-//            val legalGameActions = gameState.getLegalGameActions()
-//            legalGameActions.forEachIndexed { idx, action ->
-//                Log.d("MainActivity", "#$idx: ${action.toNotation()} $action")
+//        val notations = listOf("d4h","f9","f1","a4v","d8h","h5h","g7h","e7h","f2","f8","c1h","h2h","g2","g8","f2","f8","c5v","g8","f1","h1h","b5v","h8","f2","d2v","f3","a7h","b8v","e5h","h8h","g8","f4","c7h","f5","g9","f4","f9","f3")
+//        notations.forEach {
+//            GameAction.fromNotation(it)?.let { action ->
+//                gameState.executeGameAction(action)
 //            }
 //        }
+//        Log.d("MainActivity", "gameState: $gameState")
+//        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 6)))
+//        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
 
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
             DebugUtil.measureExecutionTime {
                 var simCount = 0
-                while (true) {
+                while (simCount < 1) {
                     val simGame = AIHelper.simulatePlayGameState(gameState)
-                    Log.d("simulation", "simGame: $simGame")
+                    Log.d("simulation", "#${++simCount} simGame: $simGame")
                 }
 
 //                val bestAction = MCTSController.search(gameState, 5)

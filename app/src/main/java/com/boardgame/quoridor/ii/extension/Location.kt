@@ -1,5 +1,6 @@
 package com.boardgame.quoridor.ii.extension
 
+import android.util.Log
 import com.boardgame.quoridor.ii.A_TO_Z
 import com.boardgame.quoridor.ii.model.Location
 

@@ -2,7 +2,6 @@ package com.boardgame.quoridor.ii.ai
 
 import android.util.Log
 import com.boardgame.quoridor.ii.game.BasicQuoridorGameState
-import com.boardgame.quoridor.ii.game.QuoridorGameState
 import com.boardgame.quoridor.ii.model.Player
 
 object AIHelper {
@@ -12,58 +11,46 @@ object AIHelper {
      * heuristic is added into the game play simulation
      * 1. if opponent has no wall remains, only choose the next move in the shortest path to goal
      */
-    private inline fun <T> simulatePlayWithHeuristic(
-        gameState: BasicQuoridorGameState,
-        crossinline onTermination: (BasicQuoridorGameState) -> T
-    ): T {
+    private fun simulatePlayWithHeuristic(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
         val simulationGame = gameState.deepCopy()
 
-        generateSequence {
-            if (simulationGame.opponent().remainingWalls <= 0) {
-                return@generateSequence simulationGame.getLegalPawnMovementToNearestGoal()
-            }
-
-            simulationGame.getRandomLegalGameAction()
-        }.forEach { action ->
+        var winner: Player? = simulationGame.winner()
+        while (winner == null) {
 //            Log.d(TAG, "simulationGame: $simulationGame") // this log significantly time consuming
-            simulationGame.executeGameAction(action)
-            if (simulationGame.winner() != null) {
-                return onTermination(simulationGame)
+            val gameAction = if (simulationGame.opponent().remainingWalls <= 0) {
+                simulationGame.getLegalPawnMovementToNearestGoal()
+            } else {
+                simulationGame.getRandomLegalGameAction()
             }
+            simulationGame.executeGameAction(gameAction)
+            winner = simulationGame.winner()
         }
 
-        // should not reach here
-        throw IllegalStateException("Game simulation did not produce a winner")
+        return simulationGame
     }
 
     /**
      * Pure random game play simulation
      */
-    private inline fun <T> simulatePlayPureRandom(
-        gameState: BasicQuoridorGameState,
-        crossinline onTermination: (BasicQuoridorGameState) -> T
-    ): T {
+    private fun simulatePlayPureRandom(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
         val simulationGame = gameState.deepCopy()
 
-        generateSequence {
-            simulationGame.getRandomLegalGameAction()
-        }.forEach { action ->
+        var winner: Player? = simulationGame.winner()
+        while (winner == null) {
 //            Log.d(TAG, "simulationGame: $simulationGame") // this log significantly time consuming
-            simulationGame.executeGameAction(action)
-            if (simulationGame.winner() != null) {
-                return onTermination(simulationGame)
-            }
+            val gameAction = simulationGame.getRandomLegalGameAction()
+            simulationGame.executeGameAction(gameAction)
+            winner = simulationGame.winner()
         }
 
-        // should not reach here
-        throw IllegalStateException("Game simulation did not produce a winner")
+        return simulationGame
     }
 
     fun simulatePlayGameState(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
-        return simulatePlayWithHeuristic(gameState) { it }
+        return simulatePlayWithHeuristic(gameState)
     }
 
     fun simulatePlayWinner(gameState: BasicQuoridorGameState): Player {
-        return simulatePlayWithHeuristic(gameState) { it.winner()!! }
+        return simulatePlayWithHeuristic(gameState).winner()!!
     }
 }
