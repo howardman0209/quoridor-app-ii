@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.boardgame.quoridor.ii.ai.AIHelper
+import com.boardgame.quoridor.ii.ai.mcts.MCTSController
 import com.boardgame.quoridor.ii.extension.toNotation
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.game.QuoridorGameState
@@ -56,10 +57,13 @@ class MainActivity : AppCompatActivity() {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
             DebugUtil.measureExecutionTime {
                 var simCount = 0
-                while (simCount++ < 1000) {
+                while (true) {
                     val simGame = AIHelper.simulatePlayGameState(gameState)
                     Log.d("simulation", "simGame: $simGame")
                 }
+
+//                val bestAction = MCTSController.search(gameState, 5)
+//                Log.d("@@@", "bestAction: $bestAction")
             }
         }
     }

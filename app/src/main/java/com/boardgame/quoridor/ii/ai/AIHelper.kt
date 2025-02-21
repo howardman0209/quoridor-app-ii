@@ -1,6 +1,7 @@
 package com.boardgame.quoridor.ii.ai
 
 import android.util.Log
+import com.boardgame.quoridor.ii.game.BasicQuoridorGameState
 import com.boardgame.quoridor.ii.game.QuoridorGameState
 import com.boardgame.quoridor.ii.model.Player
 
@@ -12,8 +13,8 @@ object AIHelper {
      * 1. if opponent has no wall remains, only choose the next move in the shortest path to goal
      */
     private inline fun <T> simulatePlayWithHeuristic(
-        gameState: QuoridorGameState,
-        crossinline onTermination: (QuoridorGameState) -> T
+        gameState: BasicQuoridorGameState,
+        crossinline onTermination: (BasicQuoridorGameState) -> T
     ): T {
         val simulationGame = gameState.deepCopy()
 
@@ -39,8 +40,8 @@ object AIHelper {
      * Pure random game play simulation
      */
     private inline fun <T> simulatePlayPureRandom(
-        gameState: QuoridorGameState,
-        crossinline onTermination: (QuoridorGameState) -> T
+        gameState: BasicQuoridorGameState,
+        crossinline onTermination: (BasicQuoridorGameState) -> T
     ): T {
         val simulationGame = gameState.deepCopy()
 
@@ -58,11 +59,11 @@ object AIHelper {
         throw IllegalStateException("Game simulation did not produce a winner")
     }
 
-    fun simulatePlayGameState(gameState: QuoridorGameState): QuoridorGameState {
+    fun simulatePlayGameState(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
         return simulatePlayWithHeuristic(gameState) { it }
     }
 
-    fun simulatePlayWinner(gameState: QuoridorGameState): Player {
+    fun simulatePlayWinner(gameState: BasicQuoridorGameState): Player {
         return simulatePlayWithHeuristic(gameState) { it.winner()!! }
     }
 }
