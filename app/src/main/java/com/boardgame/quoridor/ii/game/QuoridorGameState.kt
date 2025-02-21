@@ -183,12 +183,12 @@ class QuoridorGameState(val size: Int) : BasicQuoridorGameState() {
         if (isConnectingWall(action.location, action.orientation)) {
             val temporaryGameState = this.deepCopy()
             temporaryGameState.executeGameAction(action)
-            if (temporaryGameState.isPathToGoalExist(true)) {
+            if (!temporaryGameState.isPathToGoalExist(true)) {
 //                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.player().getPlayerIndex() + 1}")
                 return false
             }
 
-            if (temporaryGameState.isPathToGoalExist(false)) {
+            if (!temporaryGameState.isPathToGoalExist(false)) {
 //                Log.e("isLegalWallPlacement", "dead block P${temporaryGameState.opponent().getPlayerIndex() + 1}")
                 return false
             }
