@@ -45,14 +45,18 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
             DebugUtil.measureExecutionTime {
-                var simCount = 0
-                while (simCount < 1) {
-                    val simGame = AIHelper.simulatePlayGameState(gameState)
-                    Log.d("simulation", "#${++simCount} simGame: $simGame")
-                }
+//                var simCount = 0
+//                while (simCount < 1) {
+//                    val simGame = AIHelper.simulatePlayGameState(gameState)
+//                    Log.d("simulation", "#${++simCount} simGame: $simGame")
+//                }
 
-//                val bestAction = MCTSController.search(gameState, 5)
-//                Log.d("@@@", "bestAction: $bestAction")
+                while (!gameState.isTerminated()) {
+                    val bestAction = MCTSController.search(gameState, 1000)
+                    Log.d("@@@", "bestAction: $bestAction")
+                    gameState.executeGameAction(bestAction)
+                    Log.d("@@@", "gameState: $gameState")
+                }
             }
         }
     }

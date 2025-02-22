@@ -6,6 +6,8 @@ import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
 
 abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState> {
+    var numberOfTurn: Int = 1
+        protected set
 
     abstract fun player(): Player
 

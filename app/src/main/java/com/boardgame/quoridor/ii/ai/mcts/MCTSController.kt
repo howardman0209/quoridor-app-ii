@@ -77,7 +77,7 @@ object MCTSController {
             if (node.isRootNode() || !node.isNewNode()) {
                 // Expansion
                 debugLog("#$it Expansion")
-                val children = node.gameState.getLegalGameActions().map {
+                val children = node.gameState.getLegalGameActions().shuffled().map {
                     val newState = node.gameState.deepCopy()
                     newState.executeGameAction(it)
                     MCTSNode(gameState = newState, executedAction = it, parent = node)

@@ -15,8 +15,6 @@ import kotlin.math.abs
 
 class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
     val size = boardSize.value
-    var numberOfTurn: Int = 1
-        private set
 
     private var wallMap = WallMap(size - 1)
 
