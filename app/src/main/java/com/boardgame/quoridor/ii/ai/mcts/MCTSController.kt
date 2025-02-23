@@ -34,9 +34,16 @@ object MCTSController {
 
         fun selectChild(explorationWeight: Double = 1.41, heuristic: (() -> Double)? = null): MCTSNode {
             return children.maxBy {
-                val exploitation = it.score / it.visits
-                val exploration = sqrt(ln(visits.toDouble()) / it.visits)
-                exploitation + exploration * explorationWeight + heuristic?.invoke().orZero()
+                val selectionRating = if (it.visits != 0) {
+                    val exploitation = it.score / it.visits
+                    val exploration = sqrt(ln(visits.toDouble()) / it.visits)
+                    exploitation + exploration * explorationWeight + heuristic?.invoke().orZero()
+                } else {
+                    Double.MAX_VALUE
+                }
+
+//                debugLog("${it.executedAction?.toNotation().orEmpty()}: $selectionRating")
+                selectionRating
             }
         }
 
@@ -57,6 +64,7 @@ object MCTSController {
         fun dump(layer: Int = 0) {
             debugLog("x${"-".repeat(layer)}> ${executedAction?.toNotation().orEmpty()} children (${children.count()}), visit: $visits, score: $score")
             this.children.forEach {
+                if (layer > 0) return
                 it.dump(layer + 1)
             }
         }
@@ -66,9 +74,10 @@ object MCTSController {
         val currentState = initialState.deepCopy()
         val root = MCTSNode(currentState)
 
-        var node = root
+        var node: MCTSNode
         repeat(iterations) {
             // Selection
+            node = root
             while (!node.isLeafNode()) {
                 node = node.selectChild()
             }
@@ -85,9 +94,9 @@ object MCTSController {
                 node.addChildren(children)
             } else {
                 // Simulation (Rollout)
-                debugLog("#$it Rollout")
                 val winner = AIHelper.simulatePlayWinner(node.gameState)
                 val score = if (winner.getPlayerIndex() == currentState.player().getPlayerIndex()) 1 else 0
+                debugLog("#$it Rollout -> $score")
 
                 // Backpropagation
                 debugLog("#$it Backpropagation")
@@ -95,7 +104,7 @@ object MCTSController {
             }
         }
 
-        root.dump()
+//        root.dump()
         return root.selectBestChild().executedAction ?: throw Exception("Abnormal! No executed action found in child node")
     }
 

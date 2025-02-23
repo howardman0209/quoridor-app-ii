@@ -52,8 +52,10 @@ class MainActivity : AppCompatActivity() {
 //                }
 
                 while (!gameState.isTerminated()) {
+//                gameState.executeGameAction(GameAction.fromNotation("e2")!!)
+//                gameState.executeGameAction(GameAction.fromNotation("e8")!!)
                     val bestAction = MCTSController.search(gameState, 1000)
-                    Log.d("@@@", "bestAction: $bestAction")
+                    Log.d("@@@", "bestAction: ${bestAction.toNotation()}")
                     gameState.executeGameAction(bestAction)
                     Log.d("@@@", "gameState: $gameState")
                 }
