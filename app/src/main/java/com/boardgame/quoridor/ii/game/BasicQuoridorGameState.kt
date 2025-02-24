@@ -29,6 +29,14 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
 
     abstract fun getShortestPathToGoal(forPlayer: Boolean = true, considerOpponent: Boolean = true): List<Location>?
 
+    override fun executeGameAction(action: GameAction) {
+        numberOfTurn++
+    }
+
+    override fun reverseGameAction(action: GameAction) {
+        numberOfTurn--
+    }
+
     override fun isTerminated(): Boolean {
         return winner() != null
     }

@@ -71,7 +71,7 @@ object SearchUtil {
                     val newG = g + 1
                     val newF = newG + heuristic(move)
 
-                    if (!visited.containsKey(move) || newG < visited[move]!!) {
+                    if (!visited.containsKey(move) || newG < visited.getOrDefault(move, Int.MIN_VALUE)) {
                         visited[move] = newG
                         val newRoute = route + current
                         queue.add(AStartNode(move, newRoute, newG, newF))

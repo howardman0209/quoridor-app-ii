@@ -61,10 +61,10 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
             is GameAction.PawnMovement -> movePawn(action.newPawnLocation)
             is GameAction.WallPlacement -> placeWall(action)
         }
-        numberOfTurn++
+        super.executeGameAction(action)
     }
 
-    fun reverseGameAction(action: GameAction) {
+    override fun reverseGameAction(action: GameAction) {
         when (action) {
             is GameAction.PawnMovement -> {
                 movePawn(action.newPawnLocation, false)
@@ -74,7 +74,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
                 removeWall(action, false)
             }
         }
-        numberOfTurn--
+        super.reverseGameAction(action)
     }
 
     override fun isLegalPawnMovement(action: GameAction.PawnMovement, forPlayer: Boolean): Boolean {
