@@ -1,10 +1,10 @@
 package com.boardgame.quoridor.ii.ai.mcts
 
 import android.util.Log
-import com.boardgame.quoridor.ii.ai.AIHelper
+import com.boardgame.quoridor.ii.ai.SimulationHelper
 import com.boardgame.quoridor.ii.extension.orZero
 import com.boardgame.quoridor.ii.extension.toNotation
-import com.boardgame.quoridor.ii.game.BasicQuoridorGameState
+import com.boardgame.quoridor.ii.game.state.BasicQuoridorGameState
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Player
 import kotlin.math.ln
@@ -91,7 +91,7 @@ open class MCTSController {
     }
 
     protected open fun getGameWinnerForSimulation(currentNode: MCTSNode): Player {
-        return AIHelper.simulatePlayWinner(currentNode.gameState)
+        return SimulationHelper.simulatePlayWinner(currentNode.gameState)
     }
 
     fun search(initialState: BasicQuoridorGameState, iterations: Int = 1000): GameAction {

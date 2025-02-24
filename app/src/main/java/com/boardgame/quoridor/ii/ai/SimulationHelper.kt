@@ -1,13 +1,12 @@
 package com.boardgame.quoridor.ii.ai
 
-import android.util.Log
-import com.boardgame.quoridor.ii.game.BasicQuoridorGameState
-import com.boardgame.quoridor.ii.game.QuoridorGameState
+import com.boardgame.quoridor.ii.game.state.BasicQuoridorGameState
+import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
 
-object AIHelper {
-    private const val TAG = "AIHelper"
+object SimulationHelper {
+    private const val TAG = "SimulationHelper"
 
     /**
      * heuristic is added into the game play simulation

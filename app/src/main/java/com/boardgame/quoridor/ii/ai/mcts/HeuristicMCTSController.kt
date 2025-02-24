@@ -1,8 +1,7 @@
 package com.boardgame.quoridor.ii.ai.mcts
 
-import com.boardgame.quoridor.ii.game.QuoridorGameState
+import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.GameAction
-import com.boardgame.quoridor.ii.model.Location
 
 class HeuristicMCTSController : MCTSController() {
     override fun getGameActionListForExpansion(currentNode: MCTSNode): List<GameAction> {

@@ -1,4 +1,4 @@
-package com.boardgame.quoridor.ii.game
+package com.boardgame.quoridor.ii.game.state
 
 import com.boardgame.quoridor.ii.model.GameAction
 

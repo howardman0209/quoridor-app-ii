@@ -3,18 +3,14 @@ package com.boardgame.quoridor.ii.ui.activity
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.boardgame.quoridor.ii.ai.AIHelper
 import com.boardgame.quoridor.ii.ai.mcts.HeuristicMCTSController
 import com.boardgame.quoridor.ii.extension.toNotation
 import com.boardgame.quoridor.ii.model.GameAction
-import com.boardgame.quoridor.ii.game.QuoridorGameState
+import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.BoardSize
-import com.boardgame.quoridor.ii.model.Location
-import com.boardgame.quoridor.ii.model.Orientation
 import com.boardgame.quoridor.ii.util.DebugUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Stack
 
@@ -59,12 +55,12 @@ class MainActivity : AppCompatActivity() {
 //                    Log.d("simulation", "#${++simCount} simGame: $simGame")
 //                }
 
-                executeGameAction(GameAction.fromNotation("e2")!!)
-                executeGameAction(GameAction.fromNotation("e8")!!)
-                executeGameAction(GameAction.fromNotation("e3")!!)
-                executeGameAction(GameAction.fromNotation("e7")!!)
-                executeGameAction(GameAction.fromNotation("e4")!!)
-                executeGameAction(GameAction.fromNotation("e6")!!)
+//                executeGameAction(GameAction.fromNotation("e2")!!)
+//                executeGameAction(GameAction.fromNotation("e8")!!)
+//                executeGameAction(GameAction.fromNotation("e3")!!)
+//                executeGameAction(GameAction.fromNotation("e7")!!)
+//                executeGameAction(GameAction.fromNotation("e4")!!)
+//                executeGameAction(GameAction.fromNotation("e6")!!)
 
                 while (!gameState.isTerminated()) {
                     val bestAction = mctsController.search(gameState, 5000)

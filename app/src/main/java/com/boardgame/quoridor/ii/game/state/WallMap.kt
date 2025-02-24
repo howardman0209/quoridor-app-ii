@@ -1,6 +1,5 @@
-package com.boardgame.quoridor.ii.game
+package com.boardgame.quoridor.ii.game.state
 
-import android.util.Log
 import com.boardgame.quoridor.ii.extension.getDelta
 import com.boardgame.quoridor.ii.extension.getFlipped
 import com.boardgame.quoridor.ii.model.Direction
