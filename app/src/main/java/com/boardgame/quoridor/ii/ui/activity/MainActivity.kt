@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.boardgame.quoridor.ii.ai.AIHelper
-import com.boardgame.quoridor.ii.ai.mcts.MCTSController
+import com.boardgame.quoridor.ii.ai.mcts.HeuristicMCTSController
 import com.boardgame.quoridor.ii.extension.toNotation
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.game.QuoridorGameState
@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Stack
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,10 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
-            val mctsController = object : MCTSController() {
-                override fun getGameActionListForExpansion(currentNode: MCTSNode): List<GameAction> {
-                    return super.getGameActionListForExpansion(currentNode)
-                }
+            val mctsController = HeuristicMCTSController()
+            val gameActionStack = Stack<GameAction>()
+            fun executeGameAction(action: GameAction) {
+                gameState.executeGameAction(action)
+                gameActionStack.push(action)
             }
 
             DebugUtil.measureExecutionTime {
@@ -57,15 +59,21 @@ class MainActivity : AppCompatActivity() {
 //                    Log.d("simulation", "#${++simCount} simGame: $simGame")
 //                }
 
+                executeGameAction(GameAction.fromNotation("e2")!!)
+                executeGameAction(GameAction.fromNotation("e8")!!)
+                executeGameAction(GameAction.fromNotation("e3")!!)
+                executeGameAction(GameAction.fromNotation("e7")!!)
+                executeGameAction(GameAction.fromNotation("e4")!!)
+                executeGameAction(GameAction.fromNotation("e6")!!)
+
                 while (!gameState.isTerminated()) {
-//                gameState.executeGameAction(GameAction.fromNotation("e2")!!)
-//                gameState.executeGameAction(GameAction.fromNotation("e8")!!)
-                    val bestAction = mctsController.search(gameState, 1000)
+                    val bestAction = mctsController.search(gameState, 5000)
                     Log.d("@@@", "bestAction: ${bestAction.toNotation()}")
-                    gameState.executeGameAction(bestAction)
-                    Log.d("@@@", "gameState: $gameState")
+                    executeGameAction(bestAction)
+                    Log.d("@@@", "gameState: $gameState winner: ${gameState.winner()}")
                 }
             }
+            Log.d("@@@", "gameActionStack: ${gameActionStack.map { it.toNotation() }}")
         }
     }
 }

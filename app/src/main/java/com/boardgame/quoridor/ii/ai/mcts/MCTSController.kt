@@ -13,7 +13,7 @@ import kotlin.math.sqrt
 open class MCTSController {
     companion object {
         private const val TAG = "MCTS"
-        var enableProgressDebugLog = false
+        var enableProgressDebugLog = true
 
         private fun debugLog(message: String) {
             if (enableProgressDebugLog) {
@@ -30,6 +30,9 @@ open class MCTSController {
         private val children: MutableList<MCTSNode> = mutableListOf()
         var visits = 0
         var score = 0.0
+        val winRate: Double
+            get() = score / visits
+
 
         fun isLeafNode(): Boolean = children.isEmpty()
 
@@ -71,8 +74,8 @@ open class MCTSController {
         }
 
         fun dump(layer: Int = 0) {
-            debugLog("x${"-".repeat(layer)}> ${executedAction?.toNotation().orEmpty()} children (${children.count()}), visit: $visits, score: $score")
-            this.children.forEach {
+            debugLog("x${"-".repeat(layer)}> ${executedAction?.toNotation().orEmpty()} children (${children.count()}), visit: $visits, score: $score, winRate: $winRate")
+            this.children.sortedByDescending { it.visits }.forEach {
                 if (layer > 0) return
                 it.dump(layer + 1)
             }
@@ -102,12 +105,14 @@ open class MCTSController {
             while (!node.isLeafNode()) {
                 node = node.selectChild(explorationWeight = getExplorationWeightForSelection(), heuristicScore = getHeuristicScoreForSelection())
             }
-            debugLog("#$it Selection ${node.executedAction?.toNotation().orEmpty()}")
+//            debugLog("#$it Selection ${node.executedAction?.toNotation().orEmpty()}")
 
-            if (node.isRootNode() || !node.isNewNode()) {
+            if ((node.isRootNode() || !node.isNewNode()) // always expand a root node and a new node
+                && !node.gameState.isTerminated() // always not to expand a node with terminate game state
+            ) {
                 // Expansion
-                debugLog("#$it Expansion")
-                val legalGameActionList = getGameActionListForExpansion(node)
+//                debugLog("#$it Expansion")
+                val legalGameActionList = getGameActionListForExpansion(node).shuffled()
                 val children = legalGameActionList.map {
                     val newState = node.gameState.deepCopy()
                     newState.executeGameAction(it)
@@ -118,15 +123,15 @@ open class MCTSController {
                 // Simulation (Rollout)
                 val winner = getGameWinnerForSimulation(node)
                 val score = if (winner.getPlayerIndex() == currentState.player().getPlayerIndex()) 1 else 0
-                debugLog("#$it Rollout -> $score")
+//                debugLog("#$it Rollout -> $score")
 
                 // Backpropagation
-                debugLog("#$it Backpropagation")
+//                debugLog("#$it Backpropagation")
                 node.backpropagation(score)
             }
         }
 
-//        root.dump()
+        root.dump()
         return root.selectBestChild().executedAction ?: throw Exception("Abnormal! No executed action found in child node")
     }
 }

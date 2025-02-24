@@ -110,6 +110,34 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         return true
     }
 
+    fun isEffectiveWallPlacement(wallPlacement: GameAction.WallPlacement): Boolean {
+        return wallPlacement.let {
+            wallMap.isJointWallPlacement(it.wallLocation, it.orientation) // wall joining an other wall
+                    || (abs(it.wallLocation.x - player().pawnLocation.x) <= 1 && abs(it.wallLocation.y - player().pawnLocation.y) <= 1) // around player's pawn
+                    || (abs(it.wallLocation.x - opponent().pawnLocation.x) <= 1 && abs(it.wallLocation.y - opponent().pawnLocation.y) <= 1) // around opponent's pawn
+                    || ((it.wallLocation.x == 0 || it.wallLocation.y == size - 2) && it.orientation == Orientation.HORIZONTAL) // leftmost and rightmost horizontal
+        }
+    }
+
+    fun getEffectiveWallPlacements(): List<GameAction.WallPlacement> {
+        return getLegalWallPlacements().filter { isEffectiveWallPlacement(it) }
+    }
+
+    fun getRandomEffectiveWallPlacement(): GameAction.WallPlacement {
+        val vacantWallLocation = wallMap.getVacantWallLocations()
+
+        var wallPlacement: GameAction.WallPlacement
+        do {
+            val wallLocation = vacantWallLocation.random()
+            wallPlacement = GameAction.WallPlacement(
+                orientation = Orientation.entries.random(),
+                wallLocation = wallLocation
+            )
+        } while (!isLegalWallPlacement(wallPlacement) || !isEffectiveWallPlacement(wallPlacement))
+
+        return wallPlacement
+    }
+
     private fun isLegalPawnLocation(pawnLocation: Location): Boolean {
         return (pawnLocation.x in 0 until size) && (pawnLocation.y in 0 until size)
     }
