@@ -6,14 +6,23 @@ import com.boardgame.quoridor.ii.extension.orZero
 import com.boardgame.quoridor.ii.extension.toNotation
 import com.boardgame.quoridor.ii.game.BasicQuoridorGameState
 import com.boardgame.quoridor.ii.model.GameAction
+import com.boardgame.quoridor.ii.model.Player
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-object MCTSController {
-    private const val TAG = "MCTS"
-    var enableProgressDebugLog = false
+open class MCTSController {
+    companion object {
+        private const val TAG = "MCTS"
+        var enableProgressDebugLog = false
 
-    private class MCTSNode(
+        private fun debugLog(message: String) {
+            if (enableProgressDebugLog) {
+                Log.i(TAG, message)
+            }
+        }
+    }
+
+    protected class MCTSNode(
         val gameState: BasicQuoridorGameState,
         val executedAction: GameAction? = null,
         val parent: MCTSNode? = null
@@ -32,12 +41,12 @@ object MCTSController {
             this.children.addAll(children)
         }
 
-        fun selectChild(explorationWeight: Double = 1.41, heuristic: (() -> Double)? = null): MCTSNode {
+        fun selectChild(explorationWeight: Double = 1.41, heuristicScore: Double? = null): MCTSNode {
             return children.maxBy {
                 val selectionRating = if (it.visits != 0) {
                     val exploitation = it.score / it.visits
                     val exploration = sqrt(ln(visits.toDouble()) / it.visits)
-                    exploitation + exploration * explorationWeight + heuristic?.invoke().orZero()
+                    exploitation + exploration * explorationWeight + heuristicScore.orZero()
                 } else {
                     Double.MAX_VALUE
                 }
@@ -70,6 +79,18 @@ object MCTSController {
         }
     }
 
+    protected open fun getExplorationWeightForSelection(): Double = 1.41
+
+    protected open fun getHeuristicScoreForSelection(): Double = 0.0
+
+    protected open fun getGameActionListForExpansion(currentNode: MCTSNode): List<GameAction> {
+        return currentNode.gameState.getLegalGameActions().shuffled()
+    }
+
+    protected open fun getGameWinnerForSimulation(currentNode: MCTSNode): Player {
+        return AIHelper.simulatePlayWinner(currentNode.gameState)
+    }
+
     fun search(initialState: BasicQuoridorGameState, iterations: Int = 1000): GameAction {
         val currentState = initialState.deepCopy()
         val root = MCTSNode(currentState)
@@ -79,14 +100,15 @@ object MCTSController {
             // Selection
             node = root
             while (!node.isLeafNode()) {
-                node = node.selectChild()
+                node = node.selectChild(explorationWeight = getExplorationWeightForSelection(), heuristicScore = getHeuristicScoreForSelection())
             }
             debugLog("#$it Selection ${node.executedAction?.toNotation().orEmpty()}")
 
             if (node.isRootNode() || !node.isNewNode()) {
                 // Expansion
                 debugLog("#$it Expansion")
-                val children = node.gameState.getLegalGameActions().shuffled().map {
+                val legalGameActionList = getGameActionListForExpansion(node)
+                val children = legalGameActionList.map {
                     val newState = node.gameState.deepCopy()
                     newState.executeGameAction(it)
                     MCTSNode(gameState = newState, executedAction = it, parent = node)
@@ -94,7 +116,7 @@ object MCTSController {
                 node.addChildren(children)
             } else {
                 // Simulation (Rollout)
-                val winner = AIHelper.simulatePlayWinner(node.gameState)
+                val winner = getGameWinnerForSimulation(node)
                 val score = if (winner.getPlayerIndex() == currentState.player().getPlayerIndex()) 1 else 0
                 debugLog("#$it Rollout -> $score")
 
@@ -106,11 +128,5 @@ object MCTSController {
 
 //        root.dump()
         return root.selectBestChild().executedAction ?: throw Exception("Abnormal! No executed action found in child node")
-    }
-
-    private fun debugLog(message: String) {
-        if (enableProgressDebugLog) {
-            Log.i(TAG, message)
-        }
     }
 }

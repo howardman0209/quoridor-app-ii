@@ -44,6 +44,12 @@ class MainActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
+            val mctsController = object : MCTSController() {
+                override fun getGameActionListForExpansion(currentNode: MCTSNode): List<GameAction> {
+                    return super.getGameActionListForExpansion(currentNode)
+                }
+            }
+
             DebugUtil.measureExecutionTime {
 //                var simCount = 0
 //                while (simCount < 1) {
@@ -54,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                 while (!gameState.isTerminated()) {
 //                gameState.executeGameAction(GameAction.fromNotation("e2")!!)
 //                gameState.executeGameAction(GameAction.fromNotation("e8")!!)
-                    val bestAction = MCTSController.search(gameState, 1000)
+                    val bestAction = mctsController.search(gameState, 1000)
                     Log.d("@@@", "bestAction: ${bestAction.toNotation()}")
                     gameState.executeGameAction(bestAction)
                     Log.d("@@@", "gameState: $gameState")

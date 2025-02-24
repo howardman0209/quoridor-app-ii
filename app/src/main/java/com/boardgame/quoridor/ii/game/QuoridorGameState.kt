@@ -264,7 +264,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         get() {
             val printableGame = StringBuilder()
             printableGame.append("\n")
-            printableGame.append("Turn: #$numberOfTurn \n")
+            printableGame.append("Turn: #$numberOfTurn - P${player().getPlayerIndex() + 1}\n")
 
             val size = size
             val padding = (size / 10) + 1
