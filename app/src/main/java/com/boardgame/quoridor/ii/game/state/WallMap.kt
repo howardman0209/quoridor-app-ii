@@ -48,15 +48,18 @@ class WallMap(val size: Int) {
         placerData.clear(wallIndex)
     }
 
-    fun getAllWallPlacement(): List<GameAction.WallPlacement> {
+    fun getAllWallPlacements(): List<Pair<GameAction.WallPlacement, Int>> {
         val wallIndices = (0 until size * size)
             .filter { occupancyData[it] }
             .toIntArray()
 
         return wallIndices.map {
-            GameAction.WallPlacement(
-                orientation = if (orientationData.get(it)) Orientation.VERTICAL else Orientation.HORIZONTAL,
-                wallLocation = Location(it % size, it / size)
+            Pair(
+                GameAction.WallPlacement(
+                    orientation = if (orientationData.get(it)) Orientation.VERTICAL else Orientation.HORIZONTAL,
+                    wallLocation = Location(it % size, it / size)
+                ),
+                if (placerData.get(it)) 1 else 0
             )
         }
     }

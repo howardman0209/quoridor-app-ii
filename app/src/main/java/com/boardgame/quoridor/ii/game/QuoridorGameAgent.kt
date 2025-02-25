@@ -3,6 +3,7 @@ package com.boardgame.quoridor.ii.game
 import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.BoardSize
 import com.boardgame.quoridor.ii.model.GameAction
+import com.boardgame.quoridor.ii.model.Location
 import java.util.Stack
 
 class QuoridorGameAgent(boardSize: BoardSize) {
@@ -20,7 +21,11 @@ class QuoridorGameAgent(boardSize: BoardSize) {
     fun undoLastGameAction() {
         if (executedActionStack.isNotEmpty()) {
             val lastExecutedAction = executedActionStack.pop()
-            currentGameState.reverseGameAction(lastExecutedAction)
+            val previousPawnMovement = executedActionStack.lastOrNull {
+                it is GameAction.PawnMovement && executedActionStack.indexOf(it) == currentGameState.opponent().getPlayerIndex()
+            } ?: GameAction.PawnMovement(Location(currentGameState.size / 2, currentGameState.player().goalY)) // initial pawn location
+
+            currentGameState.reverseGameAction(previousPawnMovement)
             reversedActionStack.push(lastExecutedAction)
             notifyListener()
         }

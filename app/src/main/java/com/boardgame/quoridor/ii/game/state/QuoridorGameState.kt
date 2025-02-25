@@ -276,6 +276,10 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         return shortestDistance
     }
 
+    fun getAllWallPlacements(): List<Pair<GameAction.WallPlacement, Int>> {
+        return wallMap.getAllWallPlacements()
+    }
+
     override fun deepCopy(): QuoridorGameState {
         val newGameState = QuoridorGameState(BoardSize.fromInt(size))
         newGameState.numberOfTurn = this@QuoridorGameState.numberOfTurn
@@ -295,7 +299,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
 
         val size = size
         val padding = (size / 10) + 1
-        val allWallPlacementNotions = wallMap.getAllWallPlacement().map { "${it.wallLocation.toNotation()}${it.orientation.notation}" }
+        val allWallPlacementNotions = wallMap.getAllWallPlacements().map { "${it.first.wallLocation.toNotation()}${it.first.orientation.notation}" }
         val charList = A_TO_Z.substring(0, size).map { it }
         printableGame.append(" ".repeat(padding + 1))// padding
         val horizontalLabel = charList.joinToString(" ") { " $it " }

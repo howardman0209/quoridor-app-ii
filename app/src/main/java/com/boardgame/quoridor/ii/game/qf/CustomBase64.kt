@@ -47,10 +47,9 @@ object CustomBase64 {
         return paddedBitSet
     }
 
-    fun encode(bitSet: BitSet): String {
-        val paddedBitSet = getPaddedBitSet(bitSet)
-        return (0 .. paddedBitSet.length() / 6).joinToString("") { i ->
-            val segment = paddedBitSet.get(i * 6, (i + 1) * 6)
+    fun encode(bitSet: BitSet, size: Int): String {
+        return (0 until size).joinToString("") { i ->
+            val segment = bitSet.get(i * 6, (i + 1) * 6)
             ENCODING_TABLE[segment].toString()
         }
     }

@@ -5,7 +5,18 @@ import com.boardgame.quoridor.ii.game.qf.CustomBase64
 import java.util.BitSet
 
 fun String.decodeBase64ToBitSet(): BitSet {
-    return CustomBase64.decode(this) // Base64.decode(this.addBase64Padding(), Base64.NO_PADDING).toBitSet()
+    // CustomBase64.decode(this)
+    // Base64.decode(this.base64AddPadding(), Base64.NO_PADDING).toBitSet()
+    return CustomBase64.decode(this)
+}
+
+fun String.base64AddPadding(): String {
+    return when (this.length % 4) {
+        1 -> "${this}A=="
+        2 -> "$this=="
+        3 -> "$this="
+        else -> this
+    }
 }
 
 fun String.binaryToBitSet(): BitSet {

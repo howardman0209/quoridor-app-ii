@@ -1,7 +1,10 @@
 package com.boardgame.quoridor.ii.game.qf
 
+import com.boardgame.quoridor.ii.extension.decodeBase64ToBitSet
 import com.boardgame.quoridor.ii.game.state.QuoridorGameState
+import com.boardgame.quoridor.ii.model.BoardSize
 import com.boardgame.quoridor.ii.model.GameAction
+import com.boardgame.quoridor.ii.model.Location
 import kotlin.math.ceil
 import kotlin.math.ln
 
@@ -10,18 +13,15 @@ import kotlin.math.ln
  * QF code format: https://www.quoridorfansite.com/tools/qfb.html
  */
 object QFCodeTransformer : BasicGameStateTransformer<QuoridorGameState> {
-    private enum class QFCodeField {
-        STATE,
-        RECORD,
-        WHITE_PAWN_LOCATION,
-        BLACK_PAWN_LOCATION,
-        WHITE_HORIZONTAL_WALL_COUNT,
-        WHITE_VERTICAL_WALL_COUNT,
-        BLACK_HORIZONTAL_WALL_COUNT,
-        BLACK_VERTICAL_WALL_COUNT,
-        WALL_LOCATION,
-        PAWN_OR_WALL,
-        TURN_NUMBER
+    private data class QFData(
+        val state: State? = null
+    ) {
+        data class State(
+            val whitePawnLocation: Location,
+            val blackPawnLocation: Location,
+            val whiteWallPlacements: List<GameAction.WallPlacement>,
+            val blackWallPlacements: List<GameAction.WallPlacement>
+        )
     }
 
     private fun getSmallestExponentOfTwoGreaterThan(target: Int): Int {
@@ -29,31 +29,21 @@ object QFCodeTransformer : BasicGameStateTransformer<QuoridorGameState> {
         return ceil(log2OfTarget).toInt()
     }
 
-    private fun initFieldToSizeMap(initialGameState: QuoridorGameState, recordedActions: List<GameAction>): Map<QFCodeField, Int> {
+    private fun initFieldToSizeMap(initialGameState: QuoridorGameState, recordedActions: List<GameAction>) {
         val size = initialGameState.size
         val pawnLocationDataSize = getSmallestExponentOfTwoGreaterThan(size * size)
         val wallLocationDataSize = getSmallestExponentOfTwoGreaterThan((size - 1) * (size - 1))
         val wallCountDataSize = getSmallestExponentOfTwoGreaterThan(initialGameState.maxNumOfWallPerPlayer)
-
-        return mapOf(
-            QFCodeField.STATE to 1,
-            QFCodeField.RECORD to 1,
-            QFCodeField.WHITE_PAWN_LOCATION to pawnLocationDataSize,
-            QFCodeField.BLACK_PAWN_LOCATION to pawnLocationDataSize,
-            QFCodeField.WHITE_HORIZONTAL_WALL_COUNT to wallCountDataSize,
-            QFCodeField.WHITE_VERTICAL_WALL_COUNT to wallCountDataSize,
-            QFCodeField.BLACK_HORIZONTAL_WALL_COUNT to wallCountDataSize,
-            QFCodeField.BLACK_VERTICAL_WALL_COUNT to wallCountDataSize,
-            QFCodeField.WALL_LOCATION to wallLocationDataSize,
-//            QFCodeField.LAST_MOVE
-        )
+        val allWallPlacements = initialGameState.getAllWallPlacements()
+        val whiteHorizontalWallCount = allWallPlacements
     }
 
-    override fun encode(initialGameState: QuoridorGameState, recordedActions: List<GameAction>): String {
+    override fun encode(initialState: Pair<QuoridorGameState, GameAction>?, recordedActions: List<GameAction>): String {
         TODO("Not yet implemented")
     }
 
-    override fun decode(code: String): Pair<QuoridorGameState, List<GameAction>> {
+    override fun decode(code: String, boardSize: BoardSize): Pair<QuoridorGameState, List<GameAction>> {
+        val bitSet = code.decodeBase64ToBitSet()
         TODO("Not yet implemented")
     }
 }

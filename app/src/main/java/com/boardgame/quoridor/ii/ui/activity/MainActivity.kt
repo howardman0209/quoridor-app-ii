@@ -43,9 +43,10 @@ class MainActivity : AppCompatActivity() {
 //        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 6)))
 //        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
 
-        val orgBase64Str = "QFBCY" // hswBSF0FIBA // QGBCbVsg
+        val orgBase64Str = "yzoAAIBQEAAA" // hswBSF0FIBA // QGBCbVsg // yzoAAIBQEAAA
         val bitSet = orgBase64Str.decodeBase64ToBitSet()
-        val encodedBase64Str = bitSet.encodeToBase64String()
+        Log.d("@@@", "binaryStr: ${bitSet.toBinaryString(72)}")
+        val encodedBase64Str = bitSet.encodeToBase64String(12)
         Log.d("@@@", "encodedBase64Str: $encodedBase64Str")
 
 //        CoroutineScope(Dispatchers.Default).launch {
