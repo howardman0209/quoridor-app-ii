@@ -6,6 +6,7 @@ import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
 
 abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState> {
+    val maxNumOfWallPerPlayer = 10
     var numberOfTurn: Int = 1
         protected set
 

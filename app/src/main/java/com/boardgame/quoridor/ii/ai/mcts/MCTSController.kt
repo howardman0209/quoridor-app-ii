@@ -4,7 +4,7 @@ import android.util.Log
 import com.boardgame.quoridor.ii.ai.SimulationHelper
 import com.boardgame.quoridor.ii.extension.orZero
 import com.boardgame.quoridor.ii.extension.toNotation
-import com.boardgame.quoridor.ii.game.state.BasicQuoridorGameState
+import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Player
 import kotlin.math.ln
@@ -23,7 +23,7 @@ open class MCTSController {
     }
 
     protected class MCTSNode(
-        val gameState: BasicQuoridorGameState,
+        val gameState: QuoridorGameState,
         val executedAction: GameAction? = null,
         val parent: MCTSNode? = null
     ) {
@@ -94,7 +94,7 @@ open class MCTSController {
         return SimulationHelper.simulatePlayWinner(currentNode.gameState)
     }
 
-    fun search(initialState: BasicQuoridorGameState, iterations: Int = 1000): GameAction {
+    fun search(initialState: QuoridorGameState, iterations: Int = 1000): GameAction {
         val currentState = initialState.deepCopy()
         val root = MCTSNode(currentState)
 

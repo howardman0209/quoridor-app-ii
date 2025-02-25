@@ -1,11 +1,12 @@
 package com.boardgame.quoridor.ii.extension
 
 import android.util.Base64
+import com.boardgame.quoridor.ii.game.qf.CustomBase64
 import java.util.BitSet
 import kotlin.experimental.or
 
 fun BitSet.encodeToBase64String(): String? {
-    return Base64.encodeToString(this.toByteArrayExplicit(), Base64.URL_SAFE)
+    return CustomBase64.encode(this) // Base64.encodeToString(this.toByteArrayExplicit(), Base64.NO_PADDING)
 }
 
 fun BitSet.toByteArrayExplicit(): ByteArray {
@@ -21,9 +22,9 @@ fun BitSet.toByteArrayExplicit(): ByteArray {
     return byteArray
 }
 
-fun BitSet.toBinaryString(): String {
+fun BitSet.toBinaryString(size: Int? = null): String {
     val binaryString = StringBuilder()
-    for (i in 0 until this.size()) {
+    for (i in 0 until (size ?: this.length())) {
         binaryString.append(if (this[i]) '1' else '0')
     }
     return binaryString.toString()

@@ -1,11 +1,10 @@
 package com.boardgame.quoridor.ii.ai.mcts
 
-import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.GameAction
 
 class HeuristicMCTSController : MCTSController() {
     override fun getGameActionListForExpansion(currentNode: MCTSNode): List<GameAction> {
-        val currentGameState = currentNode.gameState as QuoridorGameState
+        val currentGameState = currentNode.gameState
 
         // opening heuristics
         if (currentGameState.numberOfTurn <= 6) {

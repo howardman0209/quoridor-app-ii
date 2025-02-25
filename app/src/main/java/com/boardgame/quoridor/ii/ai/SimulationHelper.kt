@@ -1,6 +1,5 @@
 package com.boardgame.quoridor.ii.ai
 
-import com.boardgame.quoridor.ii.game.state.BasicQuoridorGameState
 import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
@@ -15,8 +14,8 @@ object SimulationHelper {
      * 3. Otherwise (1-A), place an effective wall randomly if wall remains
      * 4. if no wall remains, move pawn randomly
      */
-    private fun simulatePlayWithHeuristic(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
-        val simulationGame = gameState.deepCopy() as QuoridorGameState
+    private fun simulatePlayWithHeuristic(gameState: QuoridorGameState): QuoridorGameState {
+        val simulationGame = gameState.deepCopy()
 
         var winner: Player? = simulationGame.winner()
         while (winner == null) {
@@ -40,7 +39,7 @@ object SimulationHelper {
     /**
      * Pure random game play simulation
      */
-    private fun simulatePlayPureRandom(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
+    private fun simulatePlayPureRandom(gameState: QuoridorGameState): QuoridorGameState {
         val simulationGame = gameState.deepCopy()
 
         var winner: Player? = simulationGame.winner()
@@ -54,11 +53,11 @@ object SimulationHelper {
         return simulationGame
     }
 
-    fun simulatePlayGameState(gameState: BasicQuoridorGameState): BasicQuoridorGameState {
+    fun simulatePlayGameState(gameState: QuoridorGameState): QuoridorGameState {
         return simulatePlayWithHeuristic(gameState)
     }
 
-    fun simulatePlayWinner(gameState: BasicQuoridorGameState): Player {
+    fun simulatePlayWinner(gameState: QuoridorGameState): Player {
         return simulatePlayWithHeuristic(gameState).winner()!!
     }
 }

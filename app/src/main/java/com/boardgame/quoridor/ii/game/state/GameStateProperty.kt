@@ -14,5 +14,5 @@ interface GameStateProperty<T> {
 
     fun deepCopy(): T
 
-    val stringRepresentation: String
+    fun getStringRepresentation(): String
 }

@@ -22,12 +22,12 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         Player( // P1
             goalY = size - 1,
             pawnLocation = Location(size / 2, 0),
-            remainingWalls = 10
+            remainingWalls = maxNumOfWallPerPlayer
         ),
         Player( // P2
             goalY = 0,
             pawnLocation = Location(size / 2, size - 1),
-            remainingWalls = 10
+            remainingWalls = maxNumOfWallPerPlayer
         )
     )
 
@@ -288,80 +288,79 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         return newGameState
     }
 
-    override val stringRepresentation: String
-        get() {
-            val printableGame = StringBuilder()
-            printableGame.append("\n")
-            printableGame.append("Turn: #$numberOfTurn - P${player().getPlayerIndex() + 1}\n")
+    override fun getStringRepresentation(): String {
+        val printableGame = StringBuilder()
+        printableGame.append("\n")
+        printableGame.append("Turn: #$numberOfTurn - P${player().getPlayerIndex() + 1}\n")
 
-            val size = size
-            val padding = (size / 10) + 1
-            val allWallPlacementNotions = wallMap.getAllWallPlacement().map { "${it.wallLocation.toNotation()}${it.orientation.notation}" }
-            val charList = A_TO_Z.substring(0, size).map { it }
-            printableGame.append(" ".repeat(padding + 1))// padding
-            val horizontalLabel = charList.joinToString(" ") { " $it " }
-            printableGame.append(horizontalLabel)
-            printableGame.append("\n")
-            printableGame.append(" ".repeat(padding + 1))// padding
-            printableGame.append("-".repeat(horizontalLabel.length))
-            printableGame.append("\n")
-            for (i in size downTo 1) {
-                printableGame.append("$i".padStart(padding, ' '))
-                printableGame.append("|")
-                // grid line
-                for (c in charList) {
-                    val cell = if (players.first().pawnLocation.toNotation() == "${c}${i}") {
-                        "@"
-                    } else if (players.last().pawnLocation.toNotation() == "${c}${i}") {
-                        "O"
+        val size = size
+        val padding = (size / 10) + 1
+        val allWallPlacementNotions = wallMap.getAllWallPlacement().map { "${it.wallLocation.toNotation()}${it.orientation.notation}" }
+        val charList = A_TO_Z.substring(0, size).map { it }
+        printableGame.append(" ".repeat(padding + 1))// padding
+        val horizontalLabel = charList.joinToString(" ") { " $it " }
+        printableGame.append(horizontalLabel)
+        printableGame.append("\n")
+        printableGame.append(" ".repeat(padding + 1))// padding
+        printableGame.append("-".repeat(horizontalLabel.length))
+        printableGame.append("\n")
+        for (i in size downTo 1) {
+            printableGame.append("$i".padStart(padding, ' '))
+            printableGame.append("|")
+            // grid line
+            for (c in charList) {
+                val cell = if (players.first().pawnLocation.toNotation() == "${c}${i}") {
+                    "@"
+                } else if (players.last().pawnLocation.toNotation() == "${c}${i}") {
+                    "O"
+                } else {
+                    " " // ▢
+                }
+                printableGame.append(" $cell ")
+                if (c < charList.last()) {
+                    val vWall = if ("${c}${i - 1}v" in allWallPlacementNotions || "${c}${i}v" in allWallPlacementNotions) {
+                        "|"
                     } else {
-                        " " // ▢
+                        " "
                     }
-                    printableGame.append(" $cell ")
+                    printableGame.append(vWall)
+                }
+            }
+            printableGame.append("|")
+            // border line
+            printableGame.append("\n")
+            if (i > 1) {
+                printableGame.append(" ".repeat(padding))
+                printableGame.append("|")
+                for (c in charList) {
+                    val hWall = if ("${c}${i - 1}h" in allWallPlacementNotions || "${c - 1}${i - 1}h" in allWallPlacementNotions) {
+                        "-"
+                    } else {
+                        " "
+                    }
+                    printableGame.append(hWall.repeat(3))
+
                     if (c < charList.last()) {
-                        val vWall = if ("${c}${i - 1}v" in allWallPlacementNotions || "${c}${i}v" in allWallPlacementNotions) {
-                            "|"
-                        } else {
-                            " "
-                        }
-                        printableGame.append(vWall)
+                        printableGame.append("+")
                     }
                 }
                 printableGame.append("|")
-                // border line
                 printableGame.append("\n")
-                if (i > 1) {
-                    printableGame.append(" ".repeat(padding))
-                    printableGame.append("|")
-                    for (c in charList) {
-                        val hWall = if ("${c}${i - 1}h" in allWallPlacementNotions || "${c - 1}${i - 1}h" in allWallPlacementNotions) {
-                            "-"
-                        } else {
-                            " "
-                        }
-                        printableGame.append(hWall.repeat(3))
-
-                        if (c < charList.last()) {
-                            printableGame.append("+")
-                        }
-                    }
-                    printableGame.append("|")
-                    printableGame.append("\n")
-                }
             }
-            printableGame.append(" ".repeat(padding + 1))// padding
-            printableGame.append("-".repeat(horizontalLabel.length))
-            printableGame.append("\n")
+        }
+        printableGame.append(" ".repeat(padding + 1))// padding
+        printableGame.append("-".repeat(horizontalLabel.length))
+        printableGame.append("\n")
 
-            players.forEachIndexed { idx, player ->
-                printableGame.append("P${idx + 1}-${if (idx == 0) "@" else "O"}: ${player.remainingWalls} wall(s) ")
-            }
-
-            return printableGame.toString()
+        players.forEachIndexed { idx, player ->
+            printableGame.append("P${idx + 1}-${if (idx == 0) "@" else "O"}: ${player.remainingWalls} wall(s) ")
         }
 
+        return printableGame.toString()
+    }
+
     override fun toString(): String {
-        return stringRepresentation
+        return getStringRepresentation()
     }
 
     override fun hashCode(): Int {
@@ -369,7 +368,6 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         result = 31 * result + numberOfTurn
         result = 31 * result + wallMap.hashCode()
         result = 31 * result + players.hashCode()
-        result = 31 * result + stringRepresentation.hashCode()
         return result
     }
 
@@ -383,7 +381,6 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         if (numberOfTurn != other.numberOfTurn) return false
         if (wallMap != other.wallMap) return false
         if (players != other.players) return false
-        if (stringRepresentation != other.stringRepresentation) return false
 
         return true
     }
