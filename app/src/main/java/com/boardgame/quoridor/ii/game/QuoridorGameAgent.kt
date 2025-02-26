@@ -21,11 +21,7 @@ class QuoridorGameAgent(boardSize: BoardSize) {
     fun undoLastGameAction() {
         if (executedActionStack.isNotEmpty()) {
             val lastExecutedAction = executedActionStack.pop()
-            val previousPawnMovement = executedActionStack.lastOrNull {
-                it is GameAction.PawnMovement && executedActionStack.indexOf(it) == currentGameState.opponent().getPlayerIndex()
-            } ?: GameAction.PawnMovement(Location(currentGameState.size / 2, currentGameState.player().goalY)) // initial pawn location
-
-            currentGameState.reverseGameAction(previousPawnMovement)
+            currentGameState.reverseGameAction(lastExecutedAction)
             reversedActionStack.push(lastExecutedAction)
             notifyListener()
         }

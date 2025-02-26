@@ -70,7 +70,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
     override fun reverseGameAction(action: GameAction) {
         when (action) {
             is GameAction.PawnMovement -> {
-                movePawn(action.newPawnLocation, false)
+                movePawn(action.oldPawnLocation, false)
             }
 
             is GameAction.WallPlacement -> {
@@ -201,7 +201,7 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         val actionMakerOpponent = if (forPlayer) opponent() else player()
         val legalNewLocations = findNextLegalPawnLocations(pointOfSearch = actionMaker.pawnLocation, opponentLocation = actionMakerOpponent.pawnLocation)
 
-        return legalNewLocations.map { GameAction.PawnMovement(newPawnLocation = it) }
+        return legalNewLocations.map { GameAction.PawnMovement(newPawnLocation = it, oldPawnLocation = actionMaker.pawnLocation) }
     }
 
     override fun getLegalWallPlacements(): List<GameAction.WallPlacement> {

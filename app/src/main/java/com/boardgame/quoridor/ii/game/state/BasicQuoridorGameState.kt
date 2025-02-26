@@ -65,6 +65,6 @@ abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState
             return getLegalPawnMovements().random()
         }
 
-        return GameAction.PawnMovement(newPawnLocation = shortestPathToGoal[1])
+        return GameAction.PawnMovement(oldPawnLocation = shortestPathToGoal[0], newPawnLocation = shortestPathToGoal[1])
     }
 }

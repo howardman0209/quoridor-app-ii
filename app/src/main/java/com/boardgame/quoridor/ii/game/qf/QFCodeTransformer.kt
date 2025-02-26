@@ -1,6 +1,7 @@
 package com.boardgame.quoridor.ii.game.qf
 
 import com.boardgame.quoridor.ii.model.BoardSize
+import com.boardgame.quoridor.ii.model.Direction
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Orientation
 import kotlin.math.ceil
@@ -16,7 +17,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
         return ceil(log2OfTarget).toInt()
     }
 
-    override fun encode(state: QFState): String {
+    override fun encode(state: QFState, boardSize: BoardSize): String {
         var bitBuffer = booleanArrayOf()
 
         bitBuffer += (state.initialState != null)
@@ -27,13 +28,13 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             val lastAction = state.initialState.second
 
             // pawn info
-            val pawnLocationDataSize = getSmallestExponentOfTwoGreaterThan(gameState.size * gameState.size)
-            val whitePawnIndex = gameState.getFirstPlayer().pawnLocation.let { it.y * gameState.size + it.x }
+            val pawnLocationDataSize = getSmallestExponentOfTwoGreaterThan(boardSize.value * boardSize.value)
+            val whitePawnIndex = gameState.getFirstPlayer().pawnLocation.let { it.y * boardSize.value + it.x }
             whitePawnIndex.toString(2).padStart(pawnLocationDataSize, '0').forEach {
                 bitBuffer += it == '1'
             }
 
-            val blackPawnIndex = gameState.getSecondPlayer().pawnLocation.let { it.y * gameState.size + it.x }
+            val blackPawnIndex = gameState.getSecondPlayer().pawnLocation.let { it.y * boardSize.value + it.x }
             blackPawnIndex.toString(2).padStart(pawnLocationDataSize, '0').forEach {
                 bitBuffer += it == '1'
             }
@@ -50,9 +51,9 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
                 bitBuffer += it == '1'
             }
 
-            val wallLocationDataSize = getSmallestExponentOfTwoGreaterThan((gameState.size - 1) * (gameState.size - 1))
+            val wallLocationDataSize = getSmallestExponentOfTwoGreaterThan((boardSize.value - 1) * (boardSize.value - 1))
             wHWalls.forEach {
-                val wallIndex = it.wallLocation.let { it.y * (gameState.size - 1) + it.x }
+                val wallIndex = it.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
                 wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
                     bitBuffer += it == '1'
                 }
@@ -63,7 +64,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             }
 
             wVWalls.forEach {
-                val wallIndex = it.wallLocation.let { it.y * (gameState.size - 1) + it.x }
+                val wallIndex = it.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
                 wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
                     bitBuffer += it == '1'
                 }
@@ -74,7 +75,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             }
 
             bHWalls.forEach {
-                val wallIndex = it.wallLocation.let { it.y * (gameState.size - 1) + it.x }
+                val wallIndex = it.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
                 wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
                     bitBuffer += it == '1'
                 }
@@ -85,7 +86,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             }
 
             bVWalls.forEach {
-                val wallIndex = it.wallLocation.let { it.y * (gameState.size - 1) + it.x }
+                val wallIndex = it.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
                 wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
                     bitBuffer += it == '1'
                 }
@@ -95,7 +96,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             bitBuffer += gameState.opponent().getPlayerIndex() == gameState.getSecondPlayer().getPlayerIndex()
             bitBuffer += lastAction is GameAction.WallPlacement
             if (lastAction is GameAction.WallPlacement) {
-                val wallIndex = lastAction.wallLocation.let { it.y * (gameState.size - 1) + it.x }
+                val wallIndex = lastAction.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
                 wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
                     bitBuffer += it == '1'
                 }
@@ -107,7 +108,40 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
         }
 
         if (state.recordedActions.isNotEmpty()) {
-
+            state.recordedActions.size.toString(2).padStart(10, '0').forEach {
+                bitBuffer += it == '1'
+            }
+            val wallLocationDataSize = getSmallestExponentOfTwoGreaterThan((boardSize.value - 1) * (boardSize.value - 1))
+            state.recordedActions.forEach { action ->
+                bitBuffer += action is GameAction.WallPlacement
+                when (action) {
+                    is GameAction.PawnMovement -> {
+                        val direction = Direction.fromAtoB(action.oldPawnLocation, action.newPawnLocation)
+                        if (direction == null) throw Exception("Invalid pawn movement exist in the recorded actions")
+                        val value = when (direction) {
+                            Direction.N -> 0
+                            Direction.NE -> 1
+                            Direction.E -> 2
+                            Direction.SE -> 3
+                            Direction.S -> 4
+                            Direction.SW -> 5
+                            Direction.W -> 6
+                            Direction.NW -> 7
+                        }
+                        value.toString(2).padStart(3, '0').forEach {
+                            bitBuffer += it == '1'
+                        }
+                    }
+                    
+                    is GameAction.WallPlacement -> {
+                        bitBuffer += action.orientation == Orientation.VERTICAL
+                        val wallIndex = action.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
+                        wallIndex.toString(2).padStart(wallLocationDataSize, '0').forEach {
+                            bitBuffer += it == '1'
+                        }
+                    }
+                }
+            }
         }
 
         return CustomBase64.encode(bitBuffer)

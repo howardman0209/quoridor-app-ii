@@ -5,11 +5,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.boardgame.quoridor.ii.ai.SimulationHelper
 import com.boardgame.quoridor.ii.ai.mcts.HeuristicMCTSController
-import com.boardgame.quoridor.ii.extension.decodeBase64ToBitSet
-import com.boardgame.quoridor.ii.extension.encodeToBase64String
-import com.boardgame.quoridor.ii.extension.toBinaryString
 import com.boardgame.quoridor.ii.extension.toNotation
-import com.boardgame.quoridor.ii.game.qf.CustomBase64
 import com.boardgame.quoridor.ii.game.qf.QFCodeTransformer
 import com.boardgame.quoridor.ii.game.qf.QFState
 import com.boardgame.quoridor.ii.model.GameAction
@@ -19,33 +15,11 @@ import com.boardgame.quoridor.ii.util.DebugUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.BitSet
 import java.util.Stack
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        val gameState = QuoridorGameState(BoardSize.SIZE_9)
-//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(5, 4)))
-//        gameState.executeGameAction(GameAction.PawnMovement(gameState.player().pawnLocation, Location(4, 4)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.VERTICAL, Location(3, 3)))
-//        gameState.executeGameAction(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(4, 4)))
-//
-//        val legalPawnMovements = gameState.getLegalPawnMovements()
-//        legalPawnMovements.forEach {
-//            Log.d("MainActivity", "legalPawnMovements: ${it.toNotation()}")
-//        }
-
-//        val notations = listOf("d4h","f9","f1","a4v","d8h","h5h","g7h","e7h","f2","f8","c1h","h2h","g2","g8","f2","f8","c5v","g8","f1","h1h","b5v","h8","f2","d2v","f3","a7h","b8v","e5h","h8h","g8","f4","c7h","f5","g9","f4","f9","f3")
-//        notations.forEach {
-//            GameAction.fromNotation(it)?.let { action ->
-//                gameState.executeGameAction(action)
-//            }
-//        }
-//        Log.d("MainActivity", "gameState: $gameState")
-//        val isLegalWallPlacement = gameState.isLegalWallPlacement(GameAction.WallPlacement(Orientation.HORIZONTAL, Location(7, 6)))
-//        Log.d("MainActivity", "isLegalWallPlacement: $isLegalWallPlacement")
 
 //        val orgBase64Str = "yzoAAIBQEAAA" // hswBSF0FIBA // QGBCbVsg // yzoAAIBQEAAA
 //        val bitSet = orgBase64Str.decodeBase64ToBitSet()
@@ -69,13 +43,6 @@ class MainActivity : AppCompatActivity() {
 //                    Log.d("simulation", "#${++simCount} simGame: $simGame")
 //                }
 
-//                executeGameAction(GameAction.fromNotation("e2")!!)
-//                executeGameAction(GameAction.fromNotation("e8")!!)
-//                executeGameAction(GameAction.fromNotation("e3")!!)
-//                executeGameAction(GameAction.fromNotation("e7")!!)
-//                executeGameAction(GameAction.fromNotation("e4")!!)
-//                executeGameAction(GameAction.fromNotation("e6")!!)
-
                 while (!gameState.isTerminated() && gameState.numberOfTurn < 20) {
                     val bestAction = mctsController.search(gameState, 1000)
                     Log.d("@@@", "bestAction: ${bestAction.toNotation()}")
@@ -84,9 +51,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 val qfCode = QFCodeTransformer.encode(
                     QFState(
-                        initialState = Pair(gameState, gameActionStack.last()),
-                        recordedActions = emptyList()
-                    )
+                        initialState = null, // Pair(gameState, gameActionStack.last()),
+                        recordedActions = gameActionStack.toList() // emptyList()
+                    ),
+                    BoardSize.SIZE_9
                 )
                 Log.d("@@@", "qfCode: $qfCode")
             }
