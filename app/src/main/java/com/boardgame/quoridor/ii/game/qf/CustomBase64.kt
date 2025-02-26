@@ -29,7 +29,7 @@ object CustomBase64 {
 
     fun encode(booleanArray: BooleanArray): String {
         val bitSet = booleanArray.toBitSet()
-        return encode(bitSet, (booleanArray.size / 6).coerceAtLeast(1))
+        return encode(bitSet, ((booleanArray.size + 6) / 6).coerceAtLeast(1))
     }
 
     fun decode(base64: String): BitSet {

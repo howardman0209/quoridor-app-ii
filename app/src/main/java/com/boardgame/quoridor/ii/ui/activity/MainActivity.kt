@@ -21,6 +21,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+//        val decodedQFState = QFCodeTransformer.decode("QTBAQEBAtGqpPsldTasr", BoardSize.SIZE_9)
+//        Log.d("@@@", "${decodedQFState.initialState?.first}")
+//        Log.d("@@@", "${decodedQFState.initialState?.second?.toNotation()}")
+//        Log.d("@@@", "${decodedQFState.recordedActions.map { it.toNotation() }}")
+
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
             val mctsController = HeuristicMCTSController()
@@ -45,8 +50,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 val qfCode = QFCodeTransformer.encode(
                     QFState(
-                        initialState = Pair(gameState, gameActionStack.last()), // Pair(gameState, gameActionStack.last()), // null
-                        recordedActions = emptyList() // emptyList() // gameActionStack.toList()
+                        initialState = null, // Pair(gameState, gameActionStack.last()), // null
+                        recordedActions = gameActionStack.toList() // emptyList() // gameActionStack.toList()
                     ),
                     BoardSize.SIZE_9
                 )

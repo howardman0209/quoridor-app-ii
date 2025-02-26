@@ -122,16 +122,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
                     is GameAction.PawnMovement -> {
                         val direction = Direction.fromAtoB(action.oldPawnLocation, action.newPawnLocation)
                         if (direction == null) throw Exception("Invalid pawn movement exist in the recorded actions")
-                        val value = when (direction) {
-                            Direction.N -> 0
-                            Direction.NE -> 1
-                            Direction.E -> 2
-                            Direction.SE -> 3
-                            Direction.S -> 4
-                            Direction.SW -> 5
-                            Direction.W -> 6
-                            Direction.NW -> 7
-                        }
+                        val value = direction.id
                         value.toString(2).padStart(3, '0').forEach {
                             bitBuffer += it == '1'
                         }
@@ -246,7 +237,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             }
 
             // number of turn
-            val numberOfTurn = bitSet.get(cursor, cursor + 10).toBinaryString(wallLocationDataSize).toInt(2)
+            val numberOfTurn = bitSet.get(cursor, cursor + 10).toBinaryString(10).toInt(2)
             cursor += 10
 
             Pair(
@@ -262,10 +253,38 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
             )
         } else null
 
-        if (hasRecord) {
+        val initialGameState = initialState?.first?.deepCopy() ?: QuoridorGameState(boardSize)
 
+        val recordedGameActions = mutableListOf<GameAction>()
+        if (hasRecord) {
+            val numberOfRecord = bitSet.get(cursor, cursor + 10).toBinaryString(10).toInt(2)
+            cursor += 10
+
+            repeat(numberOfRecord) {
+                if (bitSet.get(cursor++)) { // WallPlacement
+                    val wallOrientation = if (bitSet.get(cursor++)) Orientation.VERTICAL else Orientation.HORIZONTAL
+                    val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                    cursor += wallLocationDataSize
+
+                    val wallPlacement = GameAction.WallPlacement(
+                        orientation = wallOrientation,
+                        wallLocation = Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1))
+                    )
+                    initialGameState.executeGameAction(wallPlacement)
+                    recordedGameActions.add(wallPlacement)
+                } else { // PawnMovement
+                    val direction = Direction.fromId(bitSet.get(cursor, cursor + 3).toBinaryString(3).toInt(2))
+                    cursor += 3
+
+                    val pawnMovement = initialGameState.getLegalPawnMovements().first {
+                        direction == Direction.fromAtoB(it.oldPawnLocation, it.newPawnLocation)
+                    }
+                    initialGameState.executeGameAction(pawnMovement)
+                    recordedGameActions.add(pawnMovement)
+                }
+            }
         }
-        return QFState(initialState, emptyList())
+        return QFState(initialState, recordedGameActions)
     }
 
 }
