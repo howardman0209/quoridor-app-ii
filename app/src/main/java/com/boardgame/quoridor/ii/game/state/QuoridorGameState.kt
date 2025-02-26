@@ -31,6 +31,9 @@ class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
         )
     )
 
+    fun getFirstPlayer(): Player = players.first()
+    fun getSecondPlayer(): Player = players.last()
+
     override fun player(): Player = players[(numberOfTurn + 1) % 2]
 
     override fun opponent(): Player = players[numberOfTurn % 2]

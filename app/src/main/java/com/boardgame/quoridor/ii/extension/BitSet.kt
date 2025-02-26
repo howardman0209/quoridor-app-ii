@@ -5,7 +5,7 @@ import com.boardgame.quoridor.ii.game.qf.CustomBase64
 import java.util.BitSet
 import kotlin.experimental.or
 
-fun BitSet.encodeToBase64String(size: Int): String? {
+fun BitSet.encodeToBase64String(size: Int): String {
     // CustomBase64.encode(this, size)
     // Base64.encodeToString(this.toByteArrayExplicit(), Base64.NO_PADDING)
     return CustomBase64.encode(this, size)

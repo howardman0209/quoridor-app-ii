@@ -2,6 +2,7 @@ package com.boardgame.quoridor.ii.game.qf
 
 import android.util.Log
 import com.boardgame.quoridor.ii.extension.binaryToBitSet
+import com.boardgame.quoridor.ii.extension.toBitSet
 import java.util.BitSet
 
 object CustomBase64 {
@@ -31,27 +32,16 @@ object CustomBase64 {
         }
     }
 
-    private fun getPaddedBitSet(bitSet: BitSet): BitSet {
-        val size = bitSet.size()
-        if (size % 6 == 0) {
-            return bitSet
-        }
-
-        val padding = 6 - size % 6
-        val paddedBitSet = BitSet(size + padding)
-
-        for (i in 0 until size) {
-            paddedBitSet[i] = bitSet[i]
-        }
-
-        return paddedBitSet
-    }
-
     fun encode(bitSet: BitSet, size: Int): String {
         return (0 until size).joinToString("") { i ->
             val segment = bitSet.get(i * 6, (i + 1) * 6)
             ENCODING_TABLE[segment].toString()
         }
+    }
+
+    fun encode(booleanArray: BooleanArray): String {
+        val bitSet = booleanArray.toBitSet()
+        return encode(bitSet, (booleanArray.size / 6).coerceAtLeast(1))
     }
 
     fun decode(base64: String): BitSet {
