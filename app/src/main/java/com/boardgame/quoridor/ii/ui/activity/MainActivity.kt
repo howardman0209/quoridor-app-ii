@@ -1,5 +1,6 @@
 package com.boardgame.quoridor.ii.ui.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        startActivity(Intent(this, GameActivity::class.java))
+        return
 //        val decodedQFState = QFCodeTransformer.decode("QTBAQEBAtGqpPsldTasr", BoardSize.SIZE_9)
 //        Log.d("@@@", "${decodedQFState.initialState?.first}")
 //        Log.d("@@@", "${decodedQFState.initialState?.second?.toNotation()}")
@@ -42,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 //                    Log.d("simulation", "#${++simCount} simGame: $simGame")
 //                }
 
-                while (!gameState.isTerminated() && gameState.numberOfTurn < 20) {
+                while (!gameState.isTerminated()) {
                     val bestAction = mctsController.search(gameState, 1000)
                     Log.d("@@@", "bestAction: ${bestAction.toNotation()}")
                     executeGameAction(bestAction)
