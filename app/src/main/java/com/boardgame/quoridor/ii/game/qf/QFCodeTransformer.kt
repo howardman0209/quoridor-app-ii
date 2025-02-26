@@ -1,8 +1,12 @@
 package com.boardgame.quoridor.ii.game.qf
 
+import com.boardgame.quoridor.ii.MAX_NUM_OF_WALL
+import com.boardgame.quoridor.ii.extension.toBinaryString
+import com.boardgame.quoridor.ii.game.state.QuoridorGameState
 import com.boardgame.quoridor.ii.model.BoardSize
 import com.boardgame.quoridor.ii.model.Direction
 import com.boardgame.quoridor.ii.model.GameAction
+import com.boardgame.quoridor.ii.model.Location
 import com.boardgame.quoridor.ii.model.Orientation
 import kotlin.math.ceil
 import kotlin.math.ln
@@ -132,7 +136,7 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
                             bitBuffer += it == '1'
                         }
                     }
-                    
+
                     is GameAction.WallPlacement -> {
                         bitBuffer += action.orientation == Orientation.VERTICAL
                         val wallIndex = action.wallLocation.let { it.y * (boardSize.value - 1) + it.x }
@@ -148,7 +152,120 @@ object QFCodeTransformer : BasicGameStateAdapter<QFState> {
     }
 
     override fun decode(code: String, boardSize: BoardSize): QFState {
-        TODO("Not yet implemented")
+        val wallCountDataSize = getSmallestExponentOfTwoGreaterThan(MAX_NUM_OF_WALL)
+        val wallLocationDataSize = getSmallestExponentOfTwoGreaterThan((boardSize.value - 1) * (boardSize.value - 1))
+        val pawnLocationDataSize = getSmallestExponentOfTwoGreaterThan(boardSize.value * boardSize.value)
+
+        var p1PawnLocation = Location(boardSize.value / 2, 0)
+        var p2PawnLocation = Location(boardSize.value / 2, boardSize.value - 1)
+
+        var cursor = 0
+        val bitSet = CustomBase64.decode(code)
+        val hasState = bitSet.get(cursor++)
+        val hasRecord = bitSet.get(cursor++)
+
+        val initialState = if (hasState) {
+            val p1WallPlacements = mutableListOf<GameAction.WallPlacement>()
+            val p2WallPlacements = mutableListOf<GameAction.WallPlacement>()
+            val lastAction: GameAction
+
+            // pawn location info
+            val whitePawnLocationIndex = bitSet.get(cursor, cursor + pawnLocationDataSize).toBinaryString(pawnLocationDataSize).toInt(2)
+            cursor += pawnLocationDataSize
+            p1PawnLocation = Location(whitePawnLocationIndex % boardSize.value, whitePawnLocationIndex / boardSize.value)
+            val blackPawnLocationIndex = bitSet.get(cursor, cursor + pawnLocationDataSize).toBinaryString(pawnLocationDataSize).toInt(2)
+            cursor += pawnLocationDataSize
+            p2PawnLocation = Location(blackPawnLocationIndex % boardSize.value, blackPawnLocationIndex / boardSize.value)
+
+            // wall info
+            val wHWallsCount = bitSet.get(cursor, cursor + wallCountDataSize).toBinaryString(wallCountDataSize).toInt(2)
+            cursor += wallCountDataSize
+            repeat(wHWallsCount) {
+                val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                cursor += wallLocationDataSize
+                p1WallPlacements.add(
+                    GameAction.WallPlacement(
+                        orientation = Orientation.HORIZONTAL,
+                        wallLocation = Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1))
+                    )
+                )
+            }
+
+            val wVWallsCount = bitSet.get(cursor, cursor + wallCountDataSize).toBinaryString(wallCountDataSize).toInt(2)
+            cursor += wallCountDataSize
+            repeat(wVWallsCount) {
+                val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                cursor += wallLocationDataSize
+                p1WallPlacements.add(
+                    GameAction.WallPlacement(
+                        orientation = Orientation.VERTICAL,
+                        wallLocation = Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1))
+                    )
+                )
+            }
+
+            val bHWallsCount = bitSet.get(cursor, cursor + wallCountDataSize).toBinaryString(wallCountDataSize).toInt(2)
+            cursor += wallCountDataSize
+            repeat(bHWallsCount) {
+                val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                cursor += wallLocationDataSize
+                p2WallPlacements.add(
+                    GameAction.WallPlacement(
+                        orientation = Orientation.HORIZONTAL,
+                        wallLocation = Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1))
+                    )
+                )
+            }
+
+            val bVWallsCount = bitSet.get(cursor, cursor + wallCountDataSize).toBinaryString(wallCountDataSize).toInt(2)
+            cursor += wallCountDataSize
+            repeat(bVWallsCount) {
+                val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                cursor += wallLocationDataSize
+                p2WallPlacements.add(
+                    GameAction.WallPlacement(
+                        orientation = Orientation.VERTICAL,
+                        wallLocation = Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1))
+                    )
+                )
+            }
+
+            // last action
+            val lastActionMakerIndex = if (bitSet.get(cursor++)) 1 else 0
+            lastAction = if (bitSet.get(cursor++)) { // WallPlacement
+                val wallIndex = bitSet.get(cursor, cursor + wallLocationDataSize).toBinaryString(wallLocationDataSize).toInt(2)
+                cursor += wallLocationDataSize
+                val targetList = if (lastActionMakerIndex == 0) p1WallPlacements else p2WallPlacements
+                targetList.first { it.wallLocation == Location(wallIndex % (boardSize.value - 1), wallIndex / (boardSize.value - 1)) }
+            } else { // PawnMovement
+                val pawnLocation = if (lastActionMakerIndex == 0) p1PawnLocation else p2PawnLocation
+                GameAction.PawnMovement(
+                    oldPawnLocation = pawnLocation,
+                    newPawnLocation = pawnLocation
+                )
+            }
+
+            // number of turn
+            val numberOfTurn = bitSet.get(cursor, cursor + 10).toBinaryString(wallLocationDataSize).toInt(2)
+            cursor += 10
+
+            Pair(
+                QuoridorGameState.createFrom(
+                    boardSize = boardSize,
+                    p1PawnLocation = p1PawnLocation,
+                    p2PawnLocation = p2PawnLocation,
+                    p1WallPlacements = p1WallPlacements,
+                    p2WallPlacements = p2WallPlacements,
+                    numberOfTurn = numberOfTurn
+                ),
+                lastAction
+            )
+        } else null
+
+        if (hasRecord) {
+
+        }
+        return QFState(initialState, emptyList())
     }
 
 }

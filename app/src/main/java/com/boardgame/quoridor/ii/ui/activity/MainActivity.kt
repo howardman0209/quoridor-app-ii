@@ -21,12 +21,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        val orgBase64Str = "yzoAAIBQEAAA" // hswBSF0FIBA // QGBCbVsg // yzoAAIBQEAAA
-//        val bitSet = orgBase64Str.decodeBase64ToBitSet()
-//        Log.d("@@@", "binaryStr: ${bitSet.toBinaryString(72)}")
-//        val encodedBase64Str = bitSet.encodeToBase64String(12)
-//        Log.d("@@@", "encodedBase64Str: $encodedBase64Str")
-
         CoroutineScope(Dispatchers.Default).launch {
             val gameState = QuoridorGameState(BoardSize.SIZE_9)
             val mctsController = HeuristicMCTSController()
@@ -51,8 +45,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 val qfCode = QFCodeTransformer.encode(
                     QFState(
-                        initialState = null, // Pair(gameState, gameActionStack.last()),
-                        recordedActions = gameActionStack.toList() // emptyList()
+                        initialState = Pair(gameState, gameActionStack.last()), // Pair(gameState, gameActionStack.last()), // null
+                        recordedActions = emptyList() // emptyList() // gameActionStack.toList()
                     ),
                     BoardSize.SIZE_9
                 )

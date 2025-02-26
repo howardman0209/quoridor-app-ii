@@ -14,6 +14,34 @@ import com.boardgame.quoridor.ii.util.SearchUtil
 import kotlin.math.abs
 
 class QuoridorGameState(boardSize: BoardSize) : BasicQuoridorGameState() {
+    companion object {
+        fun createFrom(
+            boardSize: BoardSize,
+            p1PawnLocation: Location,
+            p2PawnLocation: Location,
+            p1WallPlacements: List<GameAction.WallPlacement>,
+            p2WallPlacements: List<GameAction.WallPlacement>,
+            numberOfTurn: Int
+        ): QuoridorGameState {
+            return QuoridorGameState(boardSize).apply {
+                getFirstPlayer().pawnLocation = p1PawnLocation
+
+                getSecondPlayer().pawnLocation = p2PawnLocation
+                p1WallPlacements.forEach {
+                    wallMap.placeWall(it, getFirstPlayer())
+                    getFirstPlayer().remainingWalls--
+                }
+
+                p2WallPlacements.forEach {
+                    wallMap.placeWall(it, getSecondPlayer())
+                    getSecondPlayer().remainingWalls--
+                }
+
+                this.numberOfTurn = numberOfTurn
+            }
+        }
+    }
+
     val size = boardSize.value
 
     private var wallMap = WallMap(size - 1)

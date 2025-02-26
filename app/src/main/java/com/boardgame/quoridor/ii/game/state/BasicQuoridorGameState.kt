@@ -1,12 +1,13 @@
 package com.boardgame.quoridor.ii.game.state
 
+import com.boardgame.quoridor.ii.MAX_NUM_OF_WALL
 import com.boardgame.quoridor.ii.model.GameAction
 import com.boardgame.quoridor.ii.model.Location
 import com.boardgame.quoridor.ii.model.Player
 import kotlin.random.Random
 
 abstract class BasicQuoridorGameState : GameStateProperty<BasicQuoridorGameState> {
-    val maxNumOfWallPerPlayer = 10
+    val maxNumOfWallPerPlayer = MAX_NUM_OF_WALL
     var numberOfTurn: Int = 1
         protected set
 
